@@ -1,0 +1,29 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "0.1.0",
+	"FriendlyName": "Gridly",
+	"Description": "Headless CMS for Multilingual Game Development ",
+	"Category": "Localization",
+	"CreatedBy": "LocalizeDirect",
+	"CreatedByURL": "https://www.gridly.com",
+	"DocsURL": "",
+	"MarketplaceURL": "",
+	"SupportURL": "",
+	"CanContainContent": false,
+	"IsBetaVersion": true,
+	"IsExperimentalVersion": false,
+	"Installed": false,
+	"Modules": [
+		{
+			"Name": "Gridly",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		},
+		{
+			"Name": "GridlyEditor",
+			"Type": "Editor",
+			"LoadingPhase": "Default"
+		}
+	]
+}
