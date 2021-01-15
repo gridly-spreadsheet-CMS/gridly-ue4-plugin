@@ -308,7 +308,7 @@ void FGridlyLocalizationServiceProvider::OnImportCultureForTargetFromGridly(cons
 			Target->UpdateStatusFromConflictReport();
 		}
 
-		ImportAllCulturesForTargetFromGridlySlowTask->Destroy();
+		ImportAllCulturesForTargetFromGridlySlowTask.Reset();
 	}
 }
 
@@ -392,7 +392,7 @@ void FGridlyLocalizationServiceProvider::OnExportNativeCultureForTargetToGridly(
 		FMessageDialog::Open(EAppMsgType::Ok, LOCTEXT("GridlyConnectionError", "ERROR: Unable to connect to Gridly"));
 	}
 
-	ExportNativeCultureFromTargetToGridlySlowTask->Destroy();
+	ExportNativeCultureFromTargetToGridlySlowTask.Reset();
 }
 
 #undef LOCTEXT_NAMESPACE
