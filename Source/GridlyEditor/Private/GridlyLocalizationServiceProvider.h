@@ -47,12 +47,11 @@ public:
 		TSharedRef<FExtender>& MenuExtender, TWeakObjectPtr<ULocalizationTarget> LocalizationTarget) const override;
 	virtual void CustomizeTargetSetToolbar(
 		TSharedRef<FExtender>& MenuExtender, TWeakObjectPtr<ULocalizationTargetSet> LocalizationTargetSet) const override;
+	void AddTargetToolbarButtons(FToolBarBuilder& ToolbarBuilder, TWeakObjectPtr<ULocalizationTarget> LocalizationTarget,
+		TSharedRef<FUICommandList> CommandList);
 #endif	  // LOCALIZATION_SERVICES_WITH_SLATE
 
 private:
-	void AddTargetToolbarButtons(FToolBarBuilder& ToolbarBuilder, TWeakObjectPtr<ULocalizationTarget> LocalizationTarget,
-		TSharedRef<FUICommandList> CommandList);
-
 	// Import
 	
 	void ImportAllCulturesForTargetFromGridly(TWeakObjectPtr<ULocalizationTarget> LocalizationTarget, bool bIsTargetSet);

@@ -223,6 +223,7 @@ void FGridlyLocalizationServiceProvider::AddTargetToolbarButtons(FToolBarBuilder
 				"TranslationEditor.ImportLatestFromLocalizationService"));
 	}
 }
+#endif	  // LOCALIZATION_SERVICES_WITH_SLATE
 
 void FGridlyLocalizationServiceProvider::ImportAllCulturesForTargetFromGridly(
 	TWeakObjectPtr<ULocalizationTarget> LocalizationTarget, bool bIsTargetSet)
@@ -393,6 +394,5 @@ void FGridlyLocalizationServiceProvider::OnExportNativeCultureForTargetToGridly(
 
 	ExportNativeCultureFromTargetToGridlySlowTask->Destroy();
 }
-#endif	  // LOCALIZATION_SERVICES_WITH_SLATE
 
 #undef LOCTEXT_NAMESPACE
