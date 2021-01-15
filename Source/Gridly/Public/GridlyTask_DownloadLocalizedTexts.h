@@ -31,8 +31,8 @@ public:
 	void OnProcessRequestComplete(FHttpRequestPtr HttpRequestPtr, FHttpResponsePtr HttpResponsePtr, bool bSuccess);
 
 public:
-	UFUNCTION(Category = Gridly, BlueprintCallable, meta = (BlueprintInternalUseOnly = true))
-	static UGridlyTask_DownloadLocalizedTexts* DownloadLocalizedTexts();
+	UFUNCTION(Category = Gridly, BlueprintCallable, meta = (BlueprintInternalUseOnly = true, WorldContext = "WorldContextObject"))
+	static UGridlyTask_DownloadLocalizedTexts* DownloadLocalizedTexts(const UObject* WorldContextObject);
 
 public:
 	UPROPERTY(BlueprintAssignable)
@@ -49,6 +49,9 @@ public:
 	FDownloadLocalizedTextsFailDelegate OnFailDelegate;;
 
 private:
+	FHttpRequestPtr HttpRequest;
+	const UObject* WorldContextObject;
+	
 	int Limit;
 	int TotalCount;
 	

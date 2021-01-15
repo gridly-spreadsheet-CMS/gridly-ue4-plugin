@@ -11,8 +11,6 @@
 #include "GenericPlatform/GenericPlatformHttp.h"
 #include "Runtime/Online/HTTP/Public/Interfaces/IHttpResponse.h"
 
-#include <NvParameterized.h>
-
 UGridlyTask_DownloadLocalizedTexts::UGridlyTask_DownloadLocalizedTexts()
 {
 	if (!HasAnyFlags(RF_ClassDefaultObject))
@@ -59,7 +57,7 @@ void UGridlyTask_DownloadLocalizedTexts::RequestPage(const int ViewIdIndex, cons
 		const FString Url = FString::Format(TEXT("https://api.gridly.com/v1/views/{ViewId}/records?page={PaginationSettings}"),
 			Args);
 
-		auto HttpRequest = FHttpModule::Get().CreateRequest();
+		HttpRequest = FHttpModule::Get().CreateRequest();
 		HttpRequest->SetHeader(TEXT("Accept"), TEXT("application/json"));
 		HttpRequest->SetHeader(TEXT("Content-Type"), TEXT("application/json"));
 		HttpRequest->SetHeader(TEXT("Authorization"), FString::Printf(TEXT("ApiKey %s"), *ApiKey));
@@ -69,11 +67,27 @@ void UGridlyTask_DownloadLocalizedTexts::RequestPage(const int ViewIdIndex, cons
 
 		HttpRequest->OnProcessRequestComplete().BindUObject(this, &UGridlyTask_DownloadLocalizedTexts::OnProcessRequestComplete);
 
-		HttpRequest->ProcessRequest();
+		OnProgress.Broadcast(PolyglotTextDatas, .1f, FGridlyResult::Success);
+		OnProgressDelegate.ExecuteIfBound(PolyglotTextDatas, .1f);
 
-		UE_LOG(LogGridly, Log, TEXT("Requesting ViewId: %s, with offset: %d, limit: %d"), *ViewId, Offset, Limit);
+		// Throttles number of requests by sleeping between each
 		
-		FPlatformProcess::Sleep(1.f); // Throttles number of requests by sleeping between each
+		UWorld* World = WorldContextObject != nullptr ? WorldContextObject->GetWorld() : nullptr;
+		if (World)
+		{
+			FTimerHandle TimerHandle;
+			World->GetTimerManager().SetTimer(TimerHandle, [this, ViewId, Offset]()
+			{
+				HttpRequest->ProcessRequest();
+				UE_LOG(LogGridly, Log, TEXT("Requesting ViewId: %s, with offset: %d, limit: %d"), *ViewId, Offset, Limit);
+			}, 1.f, false);
+		}
+		else
+		{
+			HttpRequest->ProcessRequest();
+			UE_LOG(LogGridly, Log, TEXT("Requesting ViewId: %s, with offset: %d, limit: %d"), *ViewId, Offset, Limit);
+			FPlatformProcess::Sleep(1.f);
+		}
 	}
 	else
 	{
@@ -143,7 +157,9 @@ void UGridlyTask_DownloadLocalizedTexts::OnProcessRequestComplete(FHttpRequestPt
 	}
 }
 
-UGridlyTask_DownloadLocalizedTexts* UGridlyTask_DownloadLocalizedTexts::DownloadLocalizedTexts()
+UGridlyTask_DownloadLocalizedTexts* UGridlyTask_DownloadLocalizedTexts::DownloadLocalizedTexts(const UObject* WorldContextObject)
 {
-	return NewObject<UGridlyTask_DownloadLocalizedTexts>();
+	auto DownloadLocalizedTexts = NewObject<UGridlyTask_DownloadLocalizedTexts>();
+	DownloadLocalizedTexts->WorldContextObject = WorldContextObject;
+	return DownloadLocalizedTexts;
 }

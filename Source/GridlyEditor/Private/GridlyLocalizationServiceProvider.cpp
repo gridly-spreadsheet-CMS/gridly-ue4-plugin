@@ -112,7 +112,7 @@ ELocalizationServiceOperationCommandResult::Type FGridlyLocalizationServiceProvi
 		StaticCastSharedRef<FDownloadLocalizationTargetFile>(InOperation);
 	const FString TargetCulture = DownloadOperation->GetInLocale();
 
-	UGridlyTask_DownloadLocalizedTexts* Task = UGridlyTask_DownloadLocalizedTexts::DownloadLocalizedTexts();
+	UGridlyTask_DownloadLocalizedTexts* Task = UGridlyTask_DownloadLocalizedTexts::DownloadLocalizedTexts(nullptr);
 
 	// On success
 
