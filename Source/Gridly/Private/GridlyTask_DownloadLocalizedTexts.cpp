@@ -11,6 +11,8 @@
 #include "GenericPlatform/GenericPlatformHttp.h"
 #include "Runtime/Online/HTTP/Public/Interfaces/IHttpResponse.h"
 
+#include <NvParameterized.h>
+
 UGridlyTask_DownloadLocalizedTexts::UGridlyTask_DownloadLocalizedTexts()
 {
 	if (!HasAnyFlags(RF_ClassDefaultObject))
@@ -70,6 +72,8 @@ void UGridlyTask_DownloadLocalizedTexts::RequestPage(const int ViewIdIndex, cons
 		HttpRequest->ProcessRequest();
 
 		UE_LOG(LogGridly, Log, TEXT("Requesting ViewId: %s, with offset: %d, limit: %d"), *ViewId, Offset, Limit);
+		
+		FPlatformProcess::Sleep(1.f); // Throttles number of requests by sleeping between each
 	}
 	else
 	{

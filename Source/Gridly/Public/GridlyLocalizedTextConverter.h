@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 
-#include "GridlyLocalizedText.h"
 #include "GridlyTableRow.h"
 
 class GRIDLY_API FGridlyLocalizedTextConverter
