@@ -49,7 +49,6 @@ void UGridlyTask_DownloadLocalizedTexts::RequestPage(const int ViewIdIndex, cons
 		const FString PaginationSettings = FGenericPlatformHttp::UrlEncode(FString::Printf(TEXT("{\"offset\":%d,\"limit\":%d}"),
 			Offset,
 			Limit));
-		//const FString QuerySettings = FGenericPlatformHttp::UrlEncode("{ \"columnId\": 0, \"limit\": 1000 }");
 
 		FStringFormatNamedArguments Args;
 		Args.Add(TEXT("ViewId"), *ViewId);
