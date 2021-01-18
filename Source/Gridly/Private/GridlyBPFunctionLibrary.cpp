@@ -3,7 +3,7 @@
 #include "GridlyBPFunctionLibrary.h"
 
 #include "Internationalization/Culture.h"
-#include "Internationalization/Internationalization.h" 
+#include "Internationalization/Internationalization.h"
 #include "Internationalization/PolyglotTextData.h"
 
 FString UGridlyBPFunctionLibrary::GetLocalizationPreviewCulture()
@@ -26,4 +26,5 @@ void UGridlyBPFunctionLibrary::EnableLocalizationPreview(const FString& Culture)
 void UGridlyBPFunctionLibrary::UpdateLocalizationPreview(const TArray<FPolyglotTextData>& PolyglotTextDatas)
 {
 	FTextLocalizationManager::Get().RegisterPolyglotTextData(PolyglotTextDatas);
+	EnableLocalizationPreview(GetLocalizationPreviewCulture());
 }
