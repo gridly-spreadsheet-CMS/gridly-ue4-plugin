@@ -6,6 +6,7 @@
 #include "GridlyGameSettings.h"
 #include "GridlyLocalizedText.h"
 #include "GridlyLocalizedTextConverter.h"
+#include "GridlyStyle.h"
 #include "GridlyTask_DownloadLocalizedTexts.h"
 #include "HttpModule.h"
 #include "ILocalizationServiceModule.h"
@@ -212,15 +213,15 @@ void FGridlyLocalizationServiceProvider::AddTargetToolbarButtons(FToolBarBuilder
 		ToolbarBuilder.AddToolBarButton(FGridlyLocalizationTargetEditorCommands::Get().ImportAllCulturesForTargetFromGridly,
 			NAME_None,
 			TAttribute<FText>(), TAttribute<FText>(),
-			FSlateIcon(FEditorStyle::GetStyleSetName(), "TranslationEditor.ImportLatestFromLocalizationService"));
+			FSlateIcon(FGridlyStyle::GetStyleSetName(), "Gridly.ImportAction"));
 
 		CommandList->MapAction(FGridlyLocalizationTargetEditorCommands::Get().ExportNativeCultureForTargetToGridly,
 			FExecuteAction::CreateRaw(this, &FGridlyLocalizationServiceProvider::ExportNativeCultureForTargetToGridly,
 				LocalizationTarget, bIsTargetSet));
 		ToolbarBuilder.AddToolBarButton(
 			FGridlyLocalizationTargetEditorCommands::Get().ExportNativeCultureForTargetToGridly, NAME_None,
-			TAttribute<FText>(), TAttribute<FText>(), FSlateIcon(FEditorStyle::GetStyleSetName(),
-				"TranslationEditor.ImportLatestFromLocalizationService"));
+			TAttribute<FText>(), TAttribute<FText>(), FSlateIcon(FGridlyStyle::GetStyleSetName(),
+				"Gridly.ExportAction"));
 	}
 }
 #endif	  // LOCALIZATION_SERVICES_WITH_SLATE
