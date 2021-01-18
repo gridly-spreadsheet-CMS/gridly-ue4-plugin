@@ -7,7 +7,8 @@
 #include "LocTextHelper.h"
 #include "Internationalization/PolyglotTextData.h"
 
-bool FGridlyLocalizedText::GetSourceStringsAsPolyglotTextDatas(ULocalizationTarget* LocalizationTarget, TArray<FPolyglotTextData>& OutPolyglotTextDatas)
+bool FGridlyLocalizedText::GetSourceStringsAsPolyglotTextDatas(ULocalizationTarget* LocalizationTarget,
+	TArray<FPolyglotTextData>& OutPolyglotTextDatas)
 {
 	const FString ConfigFilePath = LocalizationConfigurationScript::GetRegenerateResourcesConfigPath(LocalizationTarget);
 
@@ -105,12 +106,9 @@ bool FGridlyLocalizedText::GetSourceStringsAsPolyglotTextDatas(ULocalizationTarg
 				FPolyglotTextData PolyglotTextData(ELocalizedTextSourceCategory::Game, SourceNamespace, SourceKey, SourceText,
 					NativeCulture);
 				OutPolyglotTextDatas.Add(PolyglotTextData);
-
-				//UE_LOG(LogGridlyEditor, Verbose, TEXT("%s,%s: %s"), *SourceNamespace, *SourceKey, *SourceText);
 			}
 			return true;
 		}, true);
 
 	return true;
 }
-

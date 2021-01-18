@@ -43,26 +43,13 @@ void FGridlyEditorModule::ShutdownModule()
 
 void FGridlyEditorModule::RegisterMenus()
 {
-	// Owner will be used for cleanup in call to UToolMenus::UnregisterOwner
 	FToolMenuOwnerScoped OwnerScoped(this);
 
-	// {
-	// 	UToolMenu* Menu = UToolMenus::Get()->ExtendMenu("LevelEditor.MainMenu.Window");
-	// 	{
-	// 		FToolMenuSection& Section = Menu->FindOrAddSection("WindowLayout");
-	// 		Section.AddMenuEntryWithCommandList(FGridlyCommands::Get().PluginAction, PluginCommands);
-	// 	}
-	// }
-
+	UToolMenu* ToolbarMenu = UToolMenus::Get()->ExtendMenu("LevelEditor.LevelEditorToolBar");
+	FToolMenuSection& Section = ToolbarMenu->FindOrAddSection("Settings");
 	{
-		UToolMenu* ToolbarMenu = UToolMenus::Get()->ExtendMenu("LevelEditor.LevelEditorToolBar");
-		{
-			FToolMenuSection& Section = ToolbarMenu->FindOrAddSection("Settings");
-			{
-				FToolMenuEntry& Entry = Section.AddEntry(FToolMenuEntry::InitToolBarButton(FGridlyCommands::Get().PluginAction));
-				Entry.SetCommandList(PluginCommands);
-			}
-		}
+		FToolMenuEntry& Entry = Section.AddEntry(FToolMenuEntry::InitToolBarButton(FGridlyCommands::Get().PluginAction));
+		Entry.SetCommandList(PluginCommands);
 	}
 }
 

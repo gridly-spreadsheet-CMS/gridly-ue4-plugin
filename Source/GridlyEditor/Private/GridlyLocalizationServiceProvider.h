@@ -53,15 +53,15 @@ public:
 
 private:
 	// Import
-	
+
 	void ImportAllCulturesForTargetFromGridly(TWeakObjectPtr<ULocalizationTarget> LocalizationTarget, bool bIsTargetSet);
 	void OnImportCultureForTargetFromGridly(const FLocalizationServiceOperationRef& Operation,
 		ELocalizationServiceOperationCommandResult::Type Result, bool bIsTargetSet);
 	TSharedPtr<FScopedSlowTask> ImportAllCulturesForTargetFromGridlySlowTask;
 	TArray<FString> CurrentCultureDownloads;
 
-	// Exporting
-	
+	// Export
+
 	void ExportNativeCultureForTargetToGridly(TWeakObjectPtr<ULocalizationTarget> LocalizationTarget, bool bIsTargetSet);
 	void OnExportNativeCultureForTargetToGridly(FHttpRequestPtr HttpRequestPtr, FHttpResponsePtr HttpResponsePtr, bool bSuccess);
 	TSharedPtr<FScopedSlowTask> ExportNativeCultureFromTargetToGridlySlowTask;

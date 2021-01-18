@@ -44,7 +44,7 @@ void UGridlyTask_DownloadLocalizedTexts::RequestPage(const int ViewIdIndex, cons
 		const FString& ViewId = ViewIds[ViewIdIndex];
 
 		UGridlyGameSettings* GameSettings = GetMutableDefault<UGridlyGameSettings>();
-		const FString ApiKey = GameSettings->ApiKey;
+		const FString ApiKey = GameSettings->ImportApiKey;
 
 		const FString PaginationSettings = FGenericPlatformHttp::UrlEncode(FString::Printf(TEXT("{\"offset\":%d,\"limit\":%d}"),
 			Offset,
@@ -71,7 +71,7 @@ void UGridlyTask_DownloadLocalizedTexts::RequestPage(const int ViewIdIndex, cons
 		OnProgressDelegate.ExecuteIfBound(PolyglotTextDatas, .1f);
 
 		// Throttles number of requests by sleeping between each
-		
+
 		UWorld* World = WorldContextObject != nullptr ? WorldContextObject->GetWorld() : nullptr;
 		if (World)
 		{

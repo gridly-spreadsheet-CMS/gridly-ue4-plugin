@@ -333,8 +333,8 @@ void FGridlyLocalizationServiceProvider::ExportNativeCultureForTargetToGridly(
 			UE_LOG(LogGridlyEditor, Log, TEXT("Number of entries: %d"), PolyglotTextDatas.Num());
 
 			UGridlyGameSettings* GameSettings = GetMutableDefault<UGridlyGameSettings>();
-			const FString ApiKey = GameSettings->UploadApiKey;
-			const FString ViewId = GameSettings->UploadViewId;
+			const FString ApiKey = GameSettings->ExportApiKey;
+			const FString ViewId = GameSettings->ExportViewId;
 
 			FStringFormatNamedArguments Args;
 			Args.Add(TEXT("ViewId"), *ViewId);

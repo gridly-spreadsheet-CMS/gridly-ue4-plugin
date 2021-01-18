@@ -9,5 +9,6 @@
 class FGridlyLocalizedText
 {
 public:
-	static bool GetSourceStringsAsPolyglotTextDatas(ULocalizationTarget* LocalizationTarget, TArray<FPolyglotTextData>& OutPolyglotTextDatas);
+	static bool GetSourceStringsAsPolyglotTextDatas(ULocalizationTarget* LocalizationTarget,
+		TArray<FPolyglotTextData>& OutPolyglotTextDatas);
 };

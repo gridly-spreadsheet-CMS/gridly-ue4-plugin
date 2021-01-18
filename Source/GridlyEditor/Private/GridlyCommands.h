@@ -11,7 +11,7 @@ class FGridlyCommands final : public TCommands<FGridlyCommands>
 public:
 	FGridlyCommands();
 
-	// TCommands<> interface
+public:
 	virtual void RegisterCommands() override;
 
 public:

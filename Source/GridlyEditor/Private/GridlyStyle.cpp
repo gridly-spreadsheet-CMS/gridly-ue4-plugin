@@ -45,9 +45,7 @@ TSharedRef<FSlateStyleSet> FGridlyStyle::Create()
 {
 	TSharedRef<FSlateStyleSet> Style = MakeShareable(new FSlateStyleSet("GridlyStyle"));
 	Style->SetContentRoot(IPluginManager::Get().FindPlugin("Gridly")->GetBaseDir() / TEXT("Resources"));
-
 	Style->Set("Gridly.PluginAction", new IMAGE_BRUSH(TEXT("ButtonIcon_40x"), Icon40x40));
-
 	return Style;
 }
 

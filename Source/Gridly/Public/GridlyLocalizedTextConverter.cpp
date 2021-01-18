@@ -45,7 +45,7 @@ bool FGridlyLocalizedTextConverter::TableRowsToPolyglotTextDatas(const TArray<FG
 			{
 				const FString GridlyCulture = GridlyTableCell.ColumnId.RightChop(GameSettings->SourceLanguageColumnIdPrefix.Len());
 				FString Culture;
-				if (FGridlyCultureConverter::ConvertFromGridlyCulture(TargetCultures, GridlyCulture, Culture))
+				if (FGridlyCultureConverter::ConvertFromGridly(TargetCultures, GridlyCulture, Culture))
 				{
 					SourceCulture = Culture;
 					SourceText = GridlyTableCell.Value;
@@ -55,7 +55,7 @@ bool FGridlyLocalizedTextConverter::TableRowsToPolyglotTextDatas(const TArray<FG
 			{
 				const FString GridlyCulture = GridlyTableCell.ColumnId.RightChop(GameSettings->TargetLanguageColumnIdPrefix.Len());
 				FString Culture;
-				if (FGridlyCultureConverter::ConvertFromGridlyCulture(TargetCultures, GridlyCulture, Culture))
+				if (FGridlyCultureConverter::ConvertFromGridly(TargetCultures, GridlyCulture, Culture))
 				{
 					Translations.Add(Culture, GridlyTableCell.Value);
 				}
@@ -178,7 +178,7 @@ bool FGridlyLocalizedTextConverter::ConvertToJson(const TArray<FPolyglotTextData
 			const FString NativeString = PolyglotTextDatas[i].GetNativeString();
 
 			FString GridlyCulture;
-			if (FGridlyCultureConverter::ConvertToGridlyCulture(NativeCulture, GridlyCulture))
+			if (FGridlyCultureConverter::ConvertToGridly(NativeCulture, GridlyCulture))
 			{
 				TSharedPtr<FJsonObject> CellJsonObject = MakeShareable(new FJsonObject);
 				CellJsonObject->SetStringField("columnId", GameSettings->SourceLanguageColumnIdPrefix + GridlyCulture);

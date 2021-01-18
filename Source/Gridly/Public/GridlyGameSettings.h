@@ -11,20 +11,20 @@ class GRIDLY_API UGridlyGameSettings final : public UObject
 
 public:
 	/** The API key can be retrieved from your Gridly dashboard */
-	UPROPERTY(Category = "Gridly|Import", BlueprintReadOnly, EditAnywhere, Config)
-	FString ApiKey;
+	UPROPERTY(Category = "Gridly|Import Settings", BlueprintReadOnly, EditAnywhere, Config)
+	FString ImportApiKey;
 
 	/** The view IDs to fetch from Gridly. Record IDs will be combined. Duplicate keys will be ignored. */
-	UPROPERTY(Category = "Gridly|Import", BlueprintReadOnly, EditAnywhere, Config)
+	UPROPERTY(Category = "Gridly|Import Settings", BlueprintReadOnly, EditAnywhere, Config)
 	TArray<FString> ImportFromViewIds;
 	
-	/** The view ID to upload the source strings to. */
-	UPROPERTY(Category = "Gridly|Upload", BlueprintReadOnly, EditAnywhere, Config)
-	FString UploadApiKey;
+	/** The view ID to export the source strings to. */
+	UPROPERTY(Category = "Gridly|Export Settings", BlueprintReadOnly, EditAnywhere, Config)
+	FString ExportApiKey;
 	
-	/** The view ID to upload the source strings to. */
-	UPROPERTY(Category = "Gridly|Upload", BlueprintReadOnly, EditAnywhere, Config)
-	FString UploadViewId;
+	/** The view ID to export the source strings to. */
+	UPROPERTY(Category = "Gridly|Export Settings", BlueprintReadOnly, EditAnywhere, Config)
+	FString ExportViewId;
 	
 	/** Use combined comma-separated "{namespace},{key}" as record ID. WARNING! This should not be changed after a project has already been exported */
 	UPROPERTY(Category = "Gridly|Options", BlueprintReadOnly, EditAnywhere, Config)
@@ -44,7 +44,7 @@ public:
 
 	/** By default during import and export, Gridly will try to automatically convert to and from Unreal's culture format. This behaviour can be overriden with custom mapping */
 	UPROPERTY(Category = "Gridly|Options", BlueprintReadOnly, EditAnywhere, Config)
-	bool bUseCustomCultureMapping;
+	bool bUseCustomCultureMapping = true;
 
 	/** This will remap locale settings from Unreal to Gridly. Unreal uses "en-US", while Gridly generally uses "enUS". However, this mapping can be modified to suit the project's needs. */
 	UPROPERTY(Category = "Gridly|Options", BlueprintReadOnly, EditAnywhere, Config, meta = (EditCondition="bUseCustomCultureMapping"))

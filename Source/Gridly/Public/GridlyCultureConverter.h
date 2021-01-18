@@ -8,6 +8,7 @@ class GRIDLY_API FGridlyCultureConverter
 {
 public:
 	static TArray<FString> GetTargetCultures();
-	static bool ConvertFromGridlyCulture(const TArray<FString>& AvailableCultures, const FString& GridlyCulture, FString& OutCulture);
-	static bool ConvertToGridlyCulture(const FString& Culture, FString& OutGridlyCulture);
+	static bool ConvertFromGridly(const TArray<FString>& AvailableCultures, const FString& GridlyCulture,
+		FString& OutCulture);
+	static bool ConvertToGridly(const FString& Culture, FString& OutGridlyCulture);
 };

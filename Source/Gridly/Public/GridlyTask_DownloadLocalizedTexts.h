@@ -26,7 +26,7 @@ public:
 	UGridlyTask_DownloadLocalizedTexts();
 
 	virtual void Activate() override;
-	
+
 	void RequestPage(const int ViewIdIndex, const int Offset);
 	void OnProcessRequestComplete(FHttpRequestPtr HttpRequestPtr, FHttpResponsePtr HttpResponsePtr, bool bSuccess);
 
@@ -37,13 +37,13 @@ public:
 public:
 	UPROPERTY(BlueprintAssignable)
 	FDownloadLocalizedTextsDelegate OnSuccess;
-	
+
 	UPROPERTY(BlueprintAssignable)
 	FDownloadLocalizedTextsDelegate OnProgress;
-	
+
 	UPROPERTY(BlueprintAssignable)
 	FDownloadLocalizedTextsDelegate OnFail;
-	
+
 	FDownloadLocalizedTextsSuccessDelegate OnSuccessDelegate;
 	FDownloadLocalizedTextsProgressDelegate OnProgressDelegate;
 	FDownloadLocalizedTextsFailDelegate OnFailDelegate;;
@@ -51,10 +51,10 @@ public:
 private:
 	FHttpRequestPtr HttpRequest;
 	const UObject* WorldContextObject;
-	
+
 	int Limit;
 	int TotalCount;
-	
+
 	TArray<FString> ViewIds;
 	int CurrentViewIdIndex;
 	int CurrentOffset;

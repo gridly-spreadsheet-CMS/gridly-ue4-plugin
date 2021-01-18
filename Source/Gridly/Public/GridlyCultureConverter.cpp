@@ -46,7 +46,7 @@ TArray<FString> FGridlyCultureConverter::GetTargetCultures()
 	return TargetCultures;
 }
 
-bool FGridlyCultureConverter::ConvertFromGridlyCulture(
+bool FGridlyCultureConverter::ConvertFromGridly(
 	const TArray<FString>& AvailableCultures, const FString& GridlyCulture, FString& OutCulture)
 {
 	if (GridlyCulture.Len() > 0)
@@ -86,7 +86,7 @@ bool FGridlyCultureConverter::ConvertFromGridlyCulture(
 	return false;
 }
 
-bool FGridlyCultureConverter::ConvertToGridlyCulture(const FString& Culture, FString& OutGridlyCulture)
+bool FGridlyCultureConverter::ConvertToGridly(const FString& Culture, FString& OutGridlyCulture)
 {
 	if (Culture.Len() > 0)
 	{
