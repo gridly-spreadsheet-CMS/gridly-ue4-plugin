@@ -77,8 +77,6 @@ Make sure these locale/culture codes match the ones on Gridly (hover over them t
 
 To communicate with the API, you need to make sure that you have configured the plugin to use the correct API keys. You also need to set which view IDs you wish to use for import/export. See [import/export settings](#markdown-header-importexport-settings) for more information.
 
-![API keys and view IDs](Documentation/GridlyAPISettings.png)
-
 ### Exporting Native Source Strings
 
 Once you have made sure that your source and target languages are set up correctly and matching in both Unreal and on Gridly, and you have gathered all your source text, you can now export all source strings by pressing the `Export to Gridly`-button on the Localization Dashboard.
@@ -107,8 +105,33 @@ While possible, it is currently *not* recommended to use this mode in a producti
 
 ## Configuring Gridly
 
-All the settings for Gridly can be found in `Edit -> Project Settings -> Plugins -> Gridly`. They can also be found in `Config/DefaultGame.ini` if you prefer to edit by hand.
+All the settings for Gridly can be found in `Edit -> Project Settings -> Plugins -> Gridly`. They can also be found in `Config/DefaultGame.ini` if you prefer to edit these options by hand.
 
 ### Import/export Settings
 
+![API keys and view IDs](Documentation/GridlyAPISettings.png)
+
+- *Import Api Key*: This is the API key used for importing translations from Gridly.
+- *Import from View Ids*: This is a list of view IDs on Gridly to import from. We will fetch from all view IDs and combine the results. Only one record will be used in case of duplicate record IDs. This will be used for both regular import as well as in Live Preview mode.
+
+- *Export Api Key*: This is the API key used for exporting source strings. Make sure it has write-permissions.
+- *Export View Id*: This is the view ID on Gridly that source strings should be exported to.
+
+### Column Mapping Options
+
+![Column Mapping Options](Documentation/ColumnMappingOptions.png)
+
+- *Use Combined Namespace Id*: If you have specified a namespace for your source strings, it will be combined with the key before being sent to Gridly, in the form of `Namespace,Key`. Likewise, it will expect the record ID fetched from Gridly to be in this form and convert it during import. Do not change once configured!
+
+- *Namespace Column Id*: The column ID on Gridly to map the namespace in Unreal to. By default, this is `path`, which is the path tag column. This can be set to any column ID that is configured to be a string. Set this to empty to ignore the namespace. This option works for both import and export. Do not change once configured!
+
+- *Source Language Column Id Prefix*: All source language columns on Gridly are expected to use culture mapping as configured below and prefixed with this value. Make sure this matches the column IDs on Gridly.
+
+- *Target Language Column Id Prefix*: All target language columns on Gridly are expected to use culture mapping as configured below and prefixed with this value. Make sure this matches the column IDs on Gridly.
+
 ### Custom Culture Mapping
+
+By default, the Gridly plugin will automatically convert language/culture codes of the format `en-US` in Unreal to what Gridly uses, which is generally `enUS` (without the hyphen). You can also completely customize this behaviour by using custom culture mapping.
+
+![Custom Culture Mapping](Documentation/CustomCultureMapping.png)
+
