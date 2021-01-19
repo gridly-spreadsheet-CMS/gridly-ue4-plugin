@@ -6,7 +6,7 @@ Manage your game’s data as a single source of truth and roll out continuous up
 
 [TOC]
 
-## Prerequisities
+## Prerequisites
 
 - Unreal Engine 4.26.0
 
@@ -20,8 +20,6 @@ Download the Gridly plugin itself, as well as the sample project to get you star
 - [Gridly UE4 Sample Project](https://bitbucket.org/localizedirect/gridly-ue4-plugin-sample-project)
 
 The sample project is optional, but provides a working example project for reference that has a very basic user interface set up for localization in UE4.
-
-![Gridly UE4 Sample Project Screenshot](Documentation/SampleScreenshot.png)
 
 ### Setting up a Project for Localization
 
