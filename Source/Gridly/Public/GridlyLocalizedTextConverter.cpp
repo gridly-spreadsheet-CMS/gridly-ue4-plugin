@@ -146,7 +146,7 @@ bool FGridlyLocalizedTextConverter::ConvertToJson(const TArray<FPolyglotTextData
 		const FString Key = PolyglotTextDatas[i].GetKey();
 		const FString Namespace = PolyglotTextDatas[i].GetNamespace();
 
-		// Set record id and namespace
+		// Set record id
 
 		if (bUseCombinedNamespaceKey)
 		{
@@ -155,20 +155,20 @@ bool FGridlyLocalizedTextConverter::ConvertToJson(const TArray<FPolyglotTextData
 		else
 		{
 			RowJsonObject->SetStringField("id", Key);
+		}
 
-			// Set namespace only if not using combined namespace and key
-
-			if (bUsePathAsNamespace)
-			{
-				RowJsonObject->SetStringField("path", Namespace);
-			}
-			else
-			{
-				TSharedPtr<FJsonObject> CellJsonObject = MakeShareable(new FJsonObject);
-				CellJsonObject->SetStringField("columnId", GameSettings->NamespaceColumnId);
-				CellJsonObject->SetStringField("value", Namespace);
-				CellsJsonArray.Add(MakeShareable(new FJsonValueObject(CellJsonObject)));
-			}
+		// Set namespace/path
+		
+		if (bUsePathAsNamespace)
+		{
+			RowJsonObject->SetStringField("path", Namespace);
+		}
+		else if (!GameSettings->NamespaceColumnId.IsEmpty())
+		{
+			TSharedPtr<FJsonObject> CellJsonObject = MakeShareable(new FJsonObject);
+			CellJsonObject->SetStringField("columnId", GameSettings->NamespaceColumnId);
+			CellJsonObject->SetStringField("value", Namespace);
+			CellsJsonArray.Add(MakeShareable(new FJsonValueObject(CellJsonObject)));
 		}
 
 		// Set source language text
