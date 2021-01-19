@@ -63,7 +63,7 @@ If you do not have access to the Localization Dashboard, you need to enable it. 
 
 Once enabled, restart Unreal to be able to find the Localization Dashboard option under `Window -> Localization Dashboard`.
 
-## Export/import to/from Gridly
+## Synchronizing with Gridly
 
 Before you can export your source strings to Gridly, you need to first set up a new Grid in Gridly. Here is an example using [FIGS](https://en.wikipedia.org/wiki/FIGS):
 
