@@ -39,6 +39,12 @@ void UGridlyTask_DownloadLocalizedTexts::RequestPage(const int ViewIdIndex, cons
 	CurrentViewIdIndex = ViewIdIndex;
 	CurrentOffset = Offset;
 
+	if (ViewIds.Num() == 0)
+	{
+		UE_LOG(LogGridly, Error, TEXT("Unable to import texts: no view IDs were specified"));
+		return;
+	}
+
 	if (ViewIdIndex < ViewIds.Num())
 	{
 		const FString& ViewId = ViewIds[ViewIdIndex];
@@ -78,13 +84,13 @@ void UGridlyTask_DownloadLocalizedTexts::RequestPage(const int ViewIdIndex, cons
 			World->GetTimerManager().SetTimer(TimerHandle, [this, ViewId, Offset]()
 			{
 				HttpRequest->ProcessRequest();
-				UE_LOG(LogGridly, Log, TEXT("Requesting ViewId: %s, with offset: %d, limit: %d"), *ViewId, Offset, Limit);
+				UE_LOG(LogGridly, Log, TEXT("Requesting view ID: %s, with offset: %d, limit: %d"), *ViewId, Offset, Limit);
 			}, 1.f, false);
 		}
 		else
 		{
 			HttpRequest->ProcessRequest();
-			UE_LOG(LogGridly, Log, TEXT("Requesting ViewId: %s, with offset: %d, limit: %d"), *ViewId, Offset, Limit);
+			UE_LOG(LogGridly, Log, TEXT("Requesting view ID: %s, with offset: %d, limit: %d"), *ViewId, Offset, Limit);
 			FPlatformProcess::Sleep(1.f);
 		}
 	}
