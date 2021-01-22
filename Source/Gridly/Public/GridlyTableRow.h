@@ -8,17 +8,17 @@
 
 #include "GridlyTableRow.generated.h"
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct GRIDLY_API FGridlyTableRow
 {
 	GENERATED_BODY()
 
-	UPROPERTY()
+	UPROPERTY(Category = Gridly, BlueprintReadOnly)
 	FString Id;
 
-	UPROPERTY()
+	UPROPERTY(Category = Gridly, BlueprintReadOnly)
 	FString Path;
 
-	UPROPERTY()
+	UPROPERTY(Category = Gridly, BlueprintReadOnly)
 	TArray<FGridlyTableCell> Cells;
 };

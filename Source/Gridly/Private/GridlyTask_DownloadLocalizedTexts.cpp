@@ -52,9 +52,8 @@ void UGridlyTask_DownloadLocalizedTexts::RequestPage(const int ViewIdIndex, cons
 		UGridlyGameSettings* GameSettings = GetMutableDefault<UGridlyGameSettings>();
 		const FString ApiKey = GameSettings->ImportApiKey;
 
-		const FString PaginationSettings = FGenericPlatformHttp::UrlEncode(FString::Printf(TEXT("{\"offset\":%d,\"limit\":%d}"),
-			Offset,
-			Limit));
+		const FString PaginationSettings =
+			FGenericPlatformHttp::UrlEncode(FString::Printf(TEXT("{\"offset\":%d,\"limit\":%d}"), Offset, Limit));
 
 		FStringFormatNamedArguments Args;
 		Args.Add(TEXT("ViewId"), *ViewId);

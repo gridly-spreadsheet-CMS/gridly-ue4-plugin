@@ -6,17 +6,17 @@
 
 #include "GridlyTableCell.generated.h"
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FGridlyTableCell
 {
 	GENERATED_BODY()
 
-	UPROPERTY()
+	UPROPERTY(Category = Gridly, BlueprintReadOnly)
 	FString ColumnId;
 
-	UPROPERTY()
+	UPROPERTY(Category = Gridly, BlueprintReadOnly)
 	FString DependencyStatus;
 
-	UPROPERTY()
+	UPROPERTY(Category = Gridly, BlueprintReadOnly)
 	FString Value;
 };

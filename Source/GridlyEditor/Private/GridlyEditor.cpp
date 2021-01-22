@@ -5,9 +5,11 @@
 #include "GridlyCommands.h"
 #include "GridlyLocalizationServiceProvider.h"
 #include "GridlyStyle.h"
+#include "IAssetTools.h"
 #include "Json.h"
 #include "ToolMenus.h"
 #include "Runtime/Online/HTTP/Public/HttpModule.h"
+#include "AssetTypeActions_GridlyDataTable.h"
 
 struct FToolMenuEntry;
 DEFINE_LOG_CATEGORY(LogGridlyEditor)
@@ -29,6 +31,11 @@ void FGridlyEditorModule::StartupModule()
 	PluginCommands->MapAction(FGridlyCommands::Get().PluginAction,
 		FExecuteAction::CreateStatic(&FGridlyCommands::LaunchBrowser), FCanExecuteAction());
 	UToolMenus::RegisterStartupCallback(FSimpleMulticastDelegate::FDelegate::CreateRaw(this, &FGridlyEditorModule::RegisterMenus));
+
+	// Register asset types
+
+	IAssetTools& AssetTools = FModuleManager::GetModuleChecked<FAssetToolsModule>("AssetTools").Get();
+	AssetTools.RegisterAssetTypeActions(MakeShareable(new FAssetTypeActions_GridlyDataTable));
 }
 
 void FGridlyEditorModule::ShutdownModule()
