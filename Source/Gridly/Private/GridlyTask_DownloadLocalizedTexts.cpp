@@ -23,7 +23,7 @@ void UGridlyTask_DownloadLocalizedTexts::Activate()
 {
 	UGridlyGameSettings* GameSettings = GetMutableDefault<UGridlyGameSettings>();
 
-	Limit = 150; // TODO Change this default
+	Limit = 1000; // TODO Change this default
 	TotalCount = 0;
 
 	ViewIds.Reset();
