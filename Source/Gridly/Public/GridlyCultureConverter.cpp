@@ -6,6 +6,7 @@
 #include "GridlyGameSettings.h"
 #include "LocalizationSettings.h"
 #include "LocalizationTargetTypes.h"
+#include "Internationalization/Regex.h"
 #include "Kismet/KismetInternationalizationLibrary.h"
 
 TArray<FString> FGridlyCultureConverter::GetTargetCultures()
@@ -67,18 +68,14 @@ bool FGridlyCultureConverter::ConvertFromGridly(
 		}
 
 		// Otherwise follow rules of "enUS" -> "en-US"
-
+		
 		FString Culture = GridlyCulture;
-
-		if (Culture.Len() > 2)
+		const FRegexPattern RegexPattern("([a-z]+)([A-Z]+)");
+		FRegexMatcher RegexMatcher(RegexPattern, GridlyCulture);
+		if (RegexMatcher.FindNext())
 		{
-			Culture.InsertAt(2, "-");
-		}
-
-		OutCulture = UKismetInternationalizationLibrary::GetSuitableCulture(AvailableCultures, Culture, TEXT(""));
-
-		if (OutCulture.Len() > 0)
-		{
+			Culture = RegexMatcher.GetCaptureGroup(1) + "-" + RegexMatcher.GetCaptureGroup(2);
+			OutCulture = UKismetInternationalizationLibrary::GetSuitableCulture(AvailableCultures, Culture, TEXT(""));
 			return true;
 		}
 	}
@@ -111,13 +108,8 @@ bool FGridlyCultureConverter::ConvertToGridly(const FString& Culture, FString& O
 		if (Culture.Split("-", &Left, &Right))
 		{
 			OutGridlyCulture = Left + Right;
+			return true;
 		}
-		else
-		{
-			OutGridlyCulture = Culture;
-		}
-
-		return true;
 	}
 
 	return false;
