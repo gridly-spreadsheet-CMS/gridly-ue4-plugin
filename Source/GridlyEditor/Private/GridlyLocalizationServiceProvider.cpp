@@ -309,6 +309,7 @@ void FGridlyLocalizationServiceProvider::OnImportCultureForTargetFromGridly(cons
 			Target->UpdateStatusFromConflictReport();
 		}
 
+		ImportAllCulturesForTargetFromGridlySlowTask->EnterProgressFrame(.9f);
 		ImportAllCulturesForTargetFromGridlySlowTask.Reset();
 	}
 }
@@ -364,7 +365,7 @@ void FGridlyLocalizationServiceProvider::ExportNativeCultureForTargetToGridly(
 void FGridlyLocalizationServiceProvider::OnExportNativeCultureForTargetToGridly(FHttpRequestPtr HttpRequestPtr,
 	FHttpResponsePtr HttpResponsePtr, bool bSuccess)
 {
-	ExportNativeCultureFromTargetToGridlySlowTask->EnterProgressFrame(.8f);
+	ExportNativeCultureFromTargetToGridlySlowTask->EnterProgressFrame(.4f);
 
 	if (bSuccess)
 	{
@@ -375,7 +376,7 @@ void FGridlyLocalizationServiceProvider::OnExportNativeCultureForTargetToGridly(
 			TArray<TSharedPtr<FJsonValue>> JsonValueArray;
 			FJsonSerializer::Deserialize(JsonStringReader, JsonValueArray);
 
-			ExportNativeCultureFromTargetToGridlySlowTask->EnterProgressFrame(1.f);
+			ExportNativeCultureFromTargetToGridlySlowTask->EnterProgressFrame(.2f);
 			const FString Message = FString::Printf(TEXT("Number of entries updated: %d"), JsonValueArray.Num());
 			UE_LOG(LogGridlyEditor, Log, TEXT("%s"), *Message);
 			FMessageDialog::Open(EAppMsgType::Ok, FText::FromString(Message));
