@@ -327,45 +327,53 @@ void FGridlyLocalizationServiceProvider::OnImportCultureForTargetFromGridly(cons
 void FGridlyLocalizationServiceProvider::ExportNativeCultureForTargetToGridly(
 	TWeakObjectPtr<ULocalizationTarget> LocalizationTarget, bool bIsTargetSet)
 {
-	TArray<FPolyglotTextData> PolyglotTextDatas;
+	check(LocalizationTarget.IsValid());
 
-	ExportNativeCultureFromTargetToGridlySlowTask = MakeShareable(new FScopedSlowTask(1.f,
-		LOCTEXT("ExportNativeCultureForTargetToGridlyText", "Exporting native culture for target to Gridly")));
+	const EAppReturnType::Type MessageReturn = FMessageDialog::Open(EAppMsgType::YesNo,
+		LOCTEXT("ConfirmText",
+			"This will overwrite your source strings on Gridly with the data in your UE4 project. Are you sure you wish to export?"));
 
-	ExportNativeCultureFromTargetToGridlySlowTask->MakeDialog();
-
-	ULocalizationTarget* InLocalizationTarget = LocalizationTarget.Get();
-	if (InLocalizationTarget)
+	if (!bIsTargetSet && MessageReturn == EAppReturnType::Yes)
 	{
-		if (FGridlyLocalizedText::GetAllTextAsPolyglotTextDatas(InLocalizationTarget, PolyglotTextDatas))
+		ExportNativeCultureFromTargetToGridlySlowTask = MakeShareable(new FScopedSlowTask(1.f,
+			LOCTEXT("ExportNativeCultureForTargetToGridlyText", "Exporting native culture for target to Gridly")));
+
+		ExportNativeCultureFromTargetToGridlySlowTask->MakeDialog();
+
+		ULocalizationTarget* InLocalizationTarget = LocalizationTarget.Get();
+		if (InLocalizationTarget)
 		{
-			FString JsonString;
-			FGridlyLocalizedTextConverter::ConvertToJson(PolyglotTextDatas, false, JsonString);
-			UE_LOG(LogGridlyEditor, Log, TEXT("%s"), *JsonString);
-			UE_LOG(LogGridlyEditor, Log, TEXT("Number of entries: %d"), PolyglotTextDatas.Num());
+			TArray<FPolyglotTextData> PolyglotTextDatas;
+			if (FGridlyLocalizedText::GetAllTextAsPolyglotTextDatas(InLocalizationTarget, PolyglotTextDatas))
+			{
+				FString JsonString;
+				FGridlyLocalizedTextConverter::ConvertToJson(PolyglotTextDatas, false, JsonString);
+				UE_LOG(LogGridlyEditor, Log, TEXT("%s"), *JsonString);
+				UE_LOG(LogGridlyEditor, Log, TEXT("Number of entries: %d"), PolyglotTextDatas.Num());
 
-			UGridlyGameSettings* GameSettings = GetMutableDefault<UGridlyGameSettings>();
-			const FString ApiKey = GameSettings->ExportApiKey;
-			const FString ViewId = GameSettings->ExportViewId;
+				UGridlyGameSettings* GameSettings = GetMutableDefault<UGridlyGameSettings>();
+				const FString ApiKey = GameSettings->ExportApiKey;
+				const FString ViewId = GameSettings->ExportViewId;
 
-			FStringFormatNamedArguments Args;
-			Args.Add(TEXT("ViewId"), *ViewId);
-			const FString Url = FString::Format(TEXT("https://api.gridly.com/v1/views/{ViewId}/records"), Args);
+				FStringFormatNamedArguments Args;
+				Args.Add(TEXT("ViewId"), *ViewId);
+				const FString Url = FString::Format(TEXT("https://api.gridly.com/v1/views/{ViewId}/records"), Args);
 
-			auto HttpRequest = FHttpModule::Get().CreateRequest();
-			HttpRequest->SetHeader(TEXT("Accept"), TEXT("application/json"));
-			HttpRequest->SetHeader(TEXT("Content-Type"), TEXT("application/json"));
-			HttpRequest->SetHeader(TEXT("Authorization"), FString::Printf(TEXT("ApiKey %s"), *ApiKey));
-			HttpRequest->SetContentAsString(JsonString);
-			HttpRequest->SetVerb(TEXT("PATCH"));
-			HttpRequest->SetURL(Url);
+				auto HttpRequest = FHttpModule::Get().CreateRequest();
+				HttpRequest->SetHeader(TEXT("Accept"), TEXT("application/json"));
+				HttpRequest->SetHeader(TEXT("Content-Type"), TEXT("application/json"));
+				HttpRequest->SetHeader(TEXT("Authorization"), FString::Printf(TEXT("ApiKey %s"), *ApiKey));
+				HttpRequest->SetContentAsString(JsonString);
+				HttpRequest->SetVerb(TEXT("PATCH"));
+				HttpRequest->SetURL(Url);
 
-			HttpRequest->OnProcessRequestComplete().
-			             BindRaw(this, &FGridlyLocalizationServiceProvider::OnExportNativeCultureForTargetToGridly);
+				HttpRequest->OnProcessRequestComplete().
+				             BindRaw(this, &FGridlyLocalizationServiceProvider::OnExportNativeCultureForTargetToGridly);
 
-			HttpRequest->ProcessRequest();
+				HttpRequest->ProcessRequest();
 
-			ExportNativeCultureFromTargetToGridlySlowTask->EnterProgressFrame(.4f);
+				ExportNativeCultureFromTargetToGridlySlowTask->EnterProgressFrame(.4f);
+			}
 		}
 	}
 }
@@ -409,45 +417,53 @@ void FGridlyLocalizationServiceProvider::OnExportNativeCultureForTargetToGridly(
 void FGridlyLocalizationServiceProvider::ExportTranslationsForTargetToGridly(TWeakObjectPtr<ULocalizationTarget> LocalizationTarget,
 	bool bIsTargetSet)
 {
-	TArray<FPolyglotTextData> PolyglotTextDatas;
+	check(LocalizationTarget.IsValid());
 
-	ExportTranslationsForTargetToGridlySlowTask= MakeShareable(new FScopedSlowTask(1.f,
-		LOCTEXT("ExportTranslationsForTargetToGridlyText", "Exporting source text and translations for target to Gridly")));
+	const EAppReturnType::Type MessageReturn = FMessageDialog::Open(EAppMsgType::YesNo,
+		LOCTEXT("ConfirmText",
+			"This will overwrite all your source strings AND translations on Gridly with the data in your UE4 project. Are you sure you wish to export?"));
 
-	ExportTranslationsForTargetToGridlySlowTask->MakeDialog();
-
-	ULocalizationTarget* InLocalizationTarget = LocalizationTarget.Get();
-	if (InLocalizationTarget)
+	if (!bIsTargetSet && MessageReturn == EAppReturnType::Yes)
 	{
-		if (FGridlyLocalizedText::GetAllTextAsPolyglotTextDatas(InLocalizationTarget, PolyglotTextDatas))
+		ExportTranslationsForTargetToGridlySlowTask = MakeShareable(new FScopedSlowTask(1.f,
+			LOCTEXT("ExportTranslationsForTargetToGridlyText", "Exporting source text and translations for target to Gridly")));
+
+		ExportTranslationsForTargetToGridlySlowTask->MakeDialog();
+
+		ULocalizationTarget* InLocalizationTarget = LocalizationTarget.Get();
+		if (InLocalizationTarget)
 		{
-			FString JsonString;
-			FGridlyLocalizedTextConverter::ConvertToJson(PolyglotTextDatas, true, JsonString);
-			UE_LOG(LogGridlyEditor, Log, TEXT("%s"), *JsonString);
-			UE_LOG(LogGridlyEditor, Log, TEXT("Number of entries: %d"), PolyglotTextDatas.Num());
+			TArray<FPolyglotTextData> PolyglotTextDatas;
+			if (FGridlyLocalizedText::GetAllTextAsPolyglotTextDatas(InLocalizationTarget, PolyglotTextDatas))
+			{
+				FString JsonString;
+				FGridlyLocalizedTextConverter::ConvertToJson(PolyglotTextDatas, true, JsonString);
+				UE_LOG(LogGridlyEditor, Log, TEXT("%s"), *JsonString);
+				UE_LOG(LogGridlyEditor, Log, TEXT("Number of entries: %d"), PolyglotTextDatas.Num());
 
-			UGridlyGameSettings* GameSettings = GetMutableDefault<UGridlyGameSettings>();
-			const FString ApiKey = GameSettings->ExportApiKey;
-			const FString ViewId = GameSettings->ExportViewId;
+				UGridlyGameSettings* GameSettings = GetMutableDefault<UGridlyGameSettings>();
+				const FString ApiKey = GameSettings->ExportApiKey;
+				const FString ViewId = GameSettings->ExportViewId;
 
-			FStringFormatNamedArguments Args;
-			Args.Add(TEXT("ViewId"), *ViewId);
-			const FString Url = FString::Format(TEXT("https://api.gridly.com/v1/views/{ViewId}/records"), Args);
+				FStringFormatNamedArguments Args;
+				Args.Add(TEXT("ViewId"), *ViewId);
+				const FString Url = FString::Format(TEXT("https://api.gridly.com/v1/views/{ViewId}/records"), Args);
 
-			auto HttpRequest = FHttpModule::Get().CreateRequest();
-			HttpRequest->SetHeader(TEXT("Accept"), TEXT("application/json"));
-			HttpRequest->SetHeader(TEXT("Content-Type"), TEXT("application/json"));
-			HttpRequest->SetHeader(TEXT("Authorization"), FString::Printf(TEXT("ApiKey %s"), *ApiKey));
-			HttpRequest->SetContentAsString(JsonString);
-			HttpRequest->SetVerb(TEXT("PATCH"));
-			HttpRequest->SetURL(Url);
+				auto HttpRequest = FHttpModule::Get().CreateRequest();
+				HttpRequest->SetHeader(TEXT("Accept"), TEXT("application/json"));
+				HttpRequest->SetHeader(TEXT("Content-Type"), TEXT("application/json"));
+				HttpRequest->SetHeader(TEXT("Authorization"), FString::Printf(TEXT("ApiKey %s"), *ApiKey));
+				HttpRequest->SetContentAsString(JsonString);
+				HttpRequest->SetVerb(TEXT("PATCH"));
+				HttpRequest->SetURL(Url);
 
-			HttpRequest->OnProcessRequestComplete().
-			             BindRaw(this, &FGridlyLocalizationServiceProvider::OnExportTranslationsForTargetToGridly);
+				HttpRequest->OnProcessRequestComplete().
+				             BindRaw(this, &FGridlyLocalizationServiceProvider::OnExportTranslationsForTargetToGridly);
 
-			HttpRequest->ProcessRequest();
+				HttpRequest->ProcessRequest();
 
-			ExportTranslationsForTargetToGridlySlowTask->EnterProgressFrame(.4f);
+				ExportTranslationsForTargetToGridlySlowTask->EnterProgressFrame(.4f);
+			}
 		}
 	}
 }
