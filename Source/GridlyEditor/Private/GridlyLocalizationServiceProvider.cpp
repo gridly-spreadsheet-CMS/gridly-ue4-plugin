@@ -309,7 +309,6 @@ void FGridlyLocalizationServiceProvider::OnImportCultureForTargetFromGridly(cons
 			Target->UpdateStatusFromConflictReport();
 		}
 
-		ImportAllCulturesForTargetFromGridlySlowTask->EnterProgressFrame(.9f);
 		ImportAllCulturesForTargetFromGridlySlowTask.Reset();
 	}
 }
