@@ -65,4 +65,10 @@ private:
 	void ExportNativeCultureForTargetToGridly(TWeakObjectPtr<ULocalizationTarget> LocalizationTarget, bool bIsTargetSet);
 	void OnExportNativeCultureForTargetToGridly(FHttpRequestPtr HttpRequestPtr, FHttpResponsePtr HttpResponsePtr, bool bSuccess);
 	TSharedPtr<FScopedSlowTask> ExportNativeCultureFromTargetToGridlySlowTask;
+	
+	// Export all
+
+	void ExportTranslationsForTargetToGridly(TWeakObjectPtr<ULocalizationTarget> LocalizationTarget, bool bIsTargetSet);
+	void OnExportTranslationsForTargetToGridly(FHttpRequestPtr HttpRequestPtr, FHttpResponsePtr HttpResponsePtr, bool bSuccess);
+	TSharedPtr<FScopedSlowTask> ExportTranslationsForTargetToGridlySlowTask;
 };

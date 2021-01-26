@@ -41,6 +41,7 @@ public:
 
 	TSharedPtr<FUICommandInfo> ImportAllCulturesForTargetFromGridly;
 	TSharedPtr<FUICommandInfo> ExportNativeCultureForTargetToGridly;
+	TSharedPtr<FUICommandInfo> ExportTranslationsForTargetToGridly;
 
 	/** Initialize commands */
 	virtual void RegisterCommands() override;
@@ -52,6 +53,8 @@ void FGridlyLocalizationTargetEditorCommands::RegisterCommands()
 		"Imports translations for all cultures of this target to Gridly.", EUserInterfaceActionType::Button, FInputChord());
 	UI_COMMAND(ExportNativeCultureForTargetToGridly, "Export to Gridly",
 		"Exports native culture and source text of this target to Gridly.", EUserInterfaceActionType::Button, FInputChord());
+	UI_COMMAND(ExportTranslationsForTargetToGridly, "Export All to Gridly",
+		"Exports source text and all translations of this target to Gridly.", EUserInterfaceActionType::Button, FInputChord());
 }
 
 FGridlyLocalizationServiceProvider::FGridlyLocalizationServiceProvider()
@@ -222,6 +225,14 @@ void FGridlyLocalizationServiceProvider::AddTargetToolbarButtons(FToolBarBuilder
 			FGridlyLocalizationTargetEditorCommands::Get().ExportNativeCultureForTargetToGridly, NAME_None,
 			TAttribute<FText>(), TAttribute<FText>(), FSlateIcon(FGridlyStyle::GetStyleSetName(),
 				"Gridly.ExportAction"));
+
+		CommandList->MapAction(FGridlyLocalizationTargetEditorCommands::Get().ExportTranslationsForTargetToGridly,
+			FExecuteAction::CreateRaw(this, &FGridlyLocalizationServiceProvider::ExportTranslationsForTargetToGridly,
+				LocalizationTarget, bIsTargetSet));
+		ToolbarBuilder.AddToolBarButton(
+			FGridlyLocalizationTargetEditorCommands::Get().ExportTranslationsForTargetToGridly, NAME_None,
+			TAttribute<FText>(), TAttribute<FText>(), FSlateIcon(FGridlyStyle::GetStyleSetName(),
+				"Gridly.ExportAction"));
 	}
 }
 #endif	  // LOCALIZATION_SERVICES_WITH_SLATE
@@ -326,10 +337,10 @@ void FGridlyLocalizationServiceProvider::ExportNativeCultureForTargetToGridly(
 	ULocalizationTarget* InLocalizationTarget = LocalizationTarget.Get();
 	if (InLocalizationTarget)
 	{
-		if (FGridlyLocalizedText::GetSourceStringsAsPolyglotTextDatas(InLocalizationTarget, PolyglotTextDatas))
+		if (FGridlyLocalizedText::GetAllTextAsPolyglotTextDatas(InLocalizationTarget, PolyglotTextDatas))
 		{
 			FString JsonString;
-			FGridlyLocalizedTextConverter::ConvertToJson(PolyglotTextDatas, JsonString);
+			FGridlyLocalizedTextConverter::ConvertToJson(PolyglotTextDatas, false, JsonString);
 			UE_LOG(LogGridlyEditor, Log, TEXT("%s"), *JsonString);
 			UE_LOG(LogGridlyEditor, Log, TEXT("Number of entries: %d"), PolyglotTextDatas.Num());
 
@@ -339,15 +350,13 @@ void FGridlyLocalizationServiceProvider::ExportNativeCultureForTargetToGridly(
 
 			FStringFormatNamedArguments Args;
 			Args.Add(TEXT("ViewId"), *ViewId);
-			const FString Url = FString::Format(TEXT("https://api.gridly.com/v1/views/{ViewId}/records"),
-				Args);
+			const FString Url = FString::Format(TEXT("https://api.gridly.com/v1/views/{ViewId}/records"), Args);
 
 			auto HttpRequest = FHttpModule::Get().CreateRequest();
 			HttpRequest->SetHeader(TEXT("Accept"), TEXT("application/json"));
 			HttpRequest->SetHeader(TEXT("Content-Type"), TEXT("application/json"));
 			HttpRequest->SetHeader(TEXT("Authorization"), FString::Printf(TEXT("ApiKey %s"), *ApiKey));
 			HttpRequest->SetContentAsString(JsonString);
-
 			HttpRequest->SetVerb(TEXT("PATCH"));
 			HttpRequest->SetURL(Url);
 
@@ -383,8 +392,8 @@ void FGridlyLocalizationServiceProvider::OnExportNativeCultureForTargetToGridly(
 		else
 		{
 			const FString Content = HttpResponsePtr->GetContentAsString();
-			const FString ErrorReason = FString::Printf(TEXT("Error: %d, reason: %s"), HttpResponsePtr->GetResponseCode(),
-				*Content);
+			const FString ErrorReason =
+				FString::Printf(TEXT("Error: %d, reason: %s"), HttpResponsePtr->GetResponseCode(), *Content);
 			UE_LOG(LogGridlyEditor, Error, TEXT("%s"), *ErrorReason);
 			FMessageDialog::Open(EAppMsgType::Ok, FText::FromString(ErrorReason));
 		}
@@ -395,6 +404,88 @@ void FGridlyLocalizationServiceProvider::OnExportNativeCultureForTargetToGridly(
 	}
 
 	ExportNativeCultureFromTargetToGridlySlowTask.Reset();
+}
+
+void FGridlyLocalizationServiceProvider::ExportTranslationsForTargetToGridly(TWeakObjectPtr<ULocalizationTarget> LocalizationTarget,
+	bool bIsTargetSet)
+{
+	TArray<FPolyglotTextData> PolyglotTextDatas;
+
+	ExportTranslationsForTargetToGridlySlowTask= MakeShareable(new FScopedSlowTask(1.f,
+		LOCTEXT("ExportTranslationsForTargetToGridlyText", "Exporting source text and translations for target to Gridly")));
+
+	ExportTranslationsForTargetToGridlySlowTask->MakeDialog();
+
+	ULocalizationTarget* InLocalizationTarget = LocalizationTarget.Get();
+	if (InLocalizationTarget)
+	{
+		if (FGridlyLocalizedText::GetAllTextAsPolyglotTextDatas(InLocalizationTarget, PolyglotTextDatas))
+		{
+			FString JsonString;
+			FGridlyLocalizedTextConverter::ConvertToJson(PolyglotTextDatas, true, JsonString);
+			UE_LOG(LogGridlyEditor, Log, TEXT("%s"), *JsonString);
+			UE_LOG(LogGridlyEditor, Log, TEXT("Number of entries: %d"), PolyglotTextDatas.Num());
+
+			UGridlyGameSettings* GameSettings = GetMutableDefault<UGridlyGameSettings>();
+			const FString ApiKey = GameSettings->ExportApiKey;
+			const FString ViewId = GameSettings->ExportViewId;
+
+			FStringFormatNamedArguments Args;
+			Args.Add(TEXT("ViewId"), *ViewId);
+			const FString Url = FString::Format(TEXT("https://api.gridly.com/v1/views/{ViewId}/records"), Args);
+
+			auto HttpRequest = FHttpModule::Get().CreateRequest();
+			HttpRequest->SetHeader(TEXT("Accept"), TEXT("application/json"));
+			HttpRequest->SetHeader(TEXT("Content-Type"), TEXT("application/json"));
+			HttpRequest->SetHeader(TEXT("Authorization"), FString::Printf(TEXT("ApiKey %s"), *ApiKey));
+			HttpRequest->SetContentAsString(JsonString);
+			HttpRequest->SetVerb(TEXT("PATCH"));
+			HttpRequest->SetURL(Url);
+
+			HttpRequest->OnProcessRequestComplete().
+			             BindRaw(this, &FGridlyLocalizationServiceProvider::OnExportTranslationsForTargetToGridly);
+
+			HttpRequest->ProcessRequest();
+
+			ExportTranslationsForTargetToGridlySlowTask->EnterProgressFrame(.4f);
+		}
+	}
+}
+
+void FGridlyLocalizationServiceProvider::OnExportTranslationsForTargetToGridly(FHttpRequestPtr HttpRequestPtr,
+	FHttpResponsePtr HttpResponsePtr, bool bSuccess)
+{
+	ExportTranslationsForTargetToGridlySlowTask->EnterProgressFrame(.4f);
+
+	if (bSuccess)
+	{
+		if (HttpResponsePtr->GetResponseCode() == EHttpResponseCodes::Ok)
+		{
+			const FString Content = HttpResponsePtr->GetContentAsString();
+			const auto JsonStringReader = TJsonReaderFactory<TCHAR>::Create(Content);
+			TArray<TSharedPtr<FJsonValue>> JsonValueArray;
+			FJsonSerializer::Deserialize(JsonStringReader, JsonValueArray);
+
+			ExportTranslationsForTargetToGridlySlowTask->EnterProgressFrame(.2f);
+			const FString Message = FString::Printf(TEXT("Number of entries updated: %d"), JsonValueArray.Num());
+			UE_LOG(LogGridlyEditor, Log, TEXT("%s"), *Message);
+			FMessageDialog::Open(EAppMsgType::Ok, FText::FromString(Message));
+		}
+		else
+		{
+			const FString Content = HttpResponsePtr->GetContentAsString();
+			const FString ErrorReason =
+				FString::Printf(TEXT("Error: %d, reason: %s"), HttpResponsePtr->GetResponseCode(), *Content);
+			UE_LOG(LogGridlyEditor, Error, TEXT("%s"), *ErrorReason);
+			FMessageDialog::Open(EAppMsgType::Ok, FText::FromString(ErrorReason));
+		}
+	}
+	else
+	{
+		FMessageDialog::Open(EAppMsgType::Ok, LOCTEXT("GridlyConnectionError", "ERROR: Unable to connect to Gridly"));
+	}
+
+	ExportTranslationsForTargetToGridlySlowTask.Reset();
 }
 
 #undef LOCTEXT_NAMESPACE

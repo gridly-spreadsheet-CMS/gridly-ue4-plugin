@@ -12,6 +12,7 @@ public:
 	static bool TableRowsToPolyglotTextDatas(const TArray<FGridlyTableRow>& TableRows,
 		TMap<FString, FPolyglotTextData>& OutPolyglotTextDatas);
 	static bool WritePoFile(const TArray<FPolyglotTextData>& PolyglotTextDatas, const FString& TargetCulture, const FString& Path);
-	
-	static bool ConvertToJson(const TArray<FPolyglotTextData>& PolyglotTextDatas, FString& OutJsonString);
+
+	static bool ConvertToJson(const TArray<FPolyglotTextData>& PolyglotTextDatas, bool bIncludeTargetTranslations,
+		FString& OutJsonString);
 };

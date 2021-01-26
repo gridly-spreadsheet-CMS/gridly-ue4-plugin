@@ -2,12 +2,14 @@
 
 #include "GridlyLocalizedText.h"
 
+
+#include "GridlyCultureConverter.h"
 #include "GridlyEditor.h"
 #include "LocalizationConfigurationScript.h"
 #include "LocTextHelper.h"
 #include "Internationalization/PolyglotTextData.h"
 
-bool FGridlyLocalizedText::GetSourceStringsAsPolyglotTextDatas(ULocalizationTarget* LocalizationTarget,
+bool FGridlyLocalizedText::GetAllTextAsPolyglotTextDatas(ULocalizationTarget* LocalizationTarget,
 	TArray<FPolyglotTextData>& OutPolyglotTextDatas)
 {
 	const FString ConfigFilePath = LocalizationConfigurationScript::GetRegenerateResourcesConfigPath(LocalizationTarget);
@@ -76,8 +78,7 @@ bool FGridlyLocalizedText::GetSourceStringsAsPolyglotTextDatas(ULocalizationTarg
 		DestinationPath = FPaths::Combine(*FPaths::ProjectDir(), *DestinationPath);
 	}
 
-	TArray<FString> CulturesToGenerate;
-	CulturesToGenerate.Add(NativeCulture);
+	const TArray<FString> CulturesToGenerate = FGridlyCultureConverter::GetTargetCultures();
 
 	// Load the manifest and all archives
 	FLocTextHelper LocTextHelper(SourcePath, ManifestName, ArchiveName, NativeCulture, CulturesToGenerate, nullptr);
@@ -109,6 +110,28 @@ bool FGridlyLocalizedText::GetSourceStringsAsPolyglotTextDatas(ULocalizationTarg
 			}
 			return true;
 		}, true);
+
+	for (int i = 0; i < CulturesToGenerate.Num(); i++)
+	{
+		const FString CultureName = CulturesToGenerate[i];
+		if (CultureName != NativeCulture)
+		{
+			LocTextHelper.EnumerateTranslations(CultureName,
+				[&CultureName, &OutPolyglotTextDatas](TSharedRef<FArchiveEntry> InManifestEntry)
+				{
+					FPolyglotTextData* PolyglotTextData = OutPolyglotTextDatas.FindByPredicate(
+						[&InManifestEntry](const FPolyglotTextData& PolyglotTextData)
+						{
+							return PolyglotTextData.GetKey() == InManifestEntry->Key.GetString();
+						});
+					if (PolyglotTextData)
+					{
+						PolyglotTextData->AddLocalizedString(CultureName, InManifestEntry->Translation.Text);
+					}
+					return true;
+				}, true);
+		}
+	}
 
 	return true;
 }

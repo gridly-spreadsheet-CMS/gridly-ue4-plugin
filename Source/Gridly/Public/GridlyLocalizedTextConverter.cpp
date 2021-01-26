@@ -128,7 +128,8 @@ bool FGridlyLocalizedTextConverter::WritePoFile(const TArray<FPolyglotTextData>&
 	return false;
 }
 
-bool FGridlyLocalizedTextConverter::ConvertToJson(const TArray<FPolyglotTextData>& PolyglotTextDatas, FString& OutJsonString)
+bool FGridlyLocalizedTextConverter::ConvertToJson(const TArray<FPolyglotTextData>& PolyglotTextDatas,
+	bool bIncludeTargetTranslations, FString& OutJsonString)
 {
 	UGridlyGameSettings* GameSettings = GetMutableDefault<UGridlyGameSettings>();
 	const TArray<FString> TargetCultures = FGridlyCultureConverter::GetTargetCultures();
@@ -158,7 +159,7 @@ bool FGridlyLocalizedTextConverter::ConvertToJson(const TArray<FPolyglotTextData
 		}
 
 		// Set namespace/path
-		
+
 		if (bUsePathAsNamespace)
 		{
 			RowJsonObject->SetStringField("path", Namespace);
@@ -184,6 +185,25 @@ bool FGridlyLocalizedTextConverter::ConvertToJson(const TArray<FPolyglotTextData
 				CellJsonObject->SetStringField("columnId", GameSettings->SourceLanguageColumnIdPrefix + GridlyCulture);
 				CellJsonObject->SetStringField("value", NativeString);
 				CellsJsonArray.Add(MakeShareable(new FJsonValueObject(CellJsonObject)));
+			}
+
+			if (bIncludeTargetTranslations)
+			{
+				for (int j = 0; j < TargetCultures.Num(); j++)
+				{
+					const FString CultureName = TargetCultures[j];
+					FString LocalizedString;
+
+					if (CultureName != NativeCulture
+					    && PolyglotTextDatas[i].GetLocalizedString(CultureName, LocalizedString)
+					    && FGridlyCultureConverter::ConvertToGridly(CultureName, GridlyCulture))
+					{
+						TSharedPtr<FJsonObject> CellJsonObject = MakeShareable(new FJsonObject);
+						CellJsonObject->SetStringField("columnId", GameSettings->TargetLanguageColumnIdPrefix + GridlyCulture);
+						CellJsonObject->SetStringField("value", LocalizedString);
+						CellsJsonArray.Add(MakeShareable(new FJsonValueObject(CellJsonObject)));
+					}
+				}
 			}
 		}
 
