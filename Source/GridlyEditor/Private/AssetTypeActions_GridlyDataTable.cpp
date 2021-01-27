@@ -296,8 +296,6 @@ void FAssetTypeActions_GridlyDataTable::ExportToGridly(UGridlyDataTable* DataTab
 	FString JsonString;
 	if (FGridlyExporter::ConvertToJson(DataTable, JsonString))
 	{
-		UE_LOG(LogGridlyEditor, Log, TEXT("%s"), *JsonString);
-
 		UGridlyGameSettings* GameSettings = GetMutableDefault<UGridlyGameSettings>();
 		const FString ApiKey = GameSettings->ExportApiKey;
 		const FString ViewId = DataTable->ViewId;

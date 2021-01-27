@@ -349,7 +349,6 @@ void FGridlyLocalizationServiceProvider::ExportNativeCultureForTargetToGridly(
 			{
 				FString JsonString;
 				FGridlyExporter::ConvertToJson(PolyglotTextDatas, false, JsonString);
-				UE_LOG(LogGridlyEditor, Log, TEXT("%s"), *JsonString);
 				UE_LOG(LogGridlyEditor, Log, TEXT("Number of entries: %d"), PolyglotTextDatas.Num());
 
 				UGridlyGameSettings* GameSettings = GetMutableDefault<UGridlyGameSettings>();
@@ -439,7 +438,6 @@ void FGridlyLocalizationServiceProvider::ExportTranslationsForTargetToGridly(TWe
 			{
 				FString JsonString;
 				FGridlyExporter::ConvertToJson(PolyglotTextDatas, true, JsonString);
-				UE_LOG(LogGridlyEditor, Log, TEXT("%s"), *JsonString);
 				UE_LOG(LogGridlyEditor, Log, TEXT("Number of entries: %d"), PolyglotTextDatas.Num());
 
 				UGridlyGameSettings* GameSettings = GetMutableDefault<UGridlyGameSettings>();
