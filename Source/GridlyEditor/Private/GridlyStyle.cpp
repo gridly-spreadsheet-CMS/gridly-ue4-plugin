@@ -47,6 +47,7 @@ TSharedRef<FSlateStyleSet> FGridlyStyle::Create()
 	Style->SetContentRoot(IPluginManager::Get().FindPlugin("Gridly")->GetBaseDir() / TEXT("Resources"));
 	Style->Set("Gridly.PluginAction", new IMAGE_BRUSH(TEXT("ButtonIcon_40x"), Icon40x40));
 	Style->Set("Gridly.ExportAction", new IMAGE_BRUSH(TEXT("Export_ButtonIcon_40x"), Icon40x40));
+	Style->Set("Gridly.ExportAllAction", new IMAGE_BRUSH(TEXT("ExportAll_ButtonIcon_40x"), Icon40x40));
 	Style->Set("Gridly.ImportAction", new IMAGE_BRUSH(TEXT("Import_ButtonIcon_40x"), Icon40x40));
 	return Style;
 }

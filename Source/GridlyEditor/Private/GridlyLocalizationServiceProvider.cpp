@@ -232,7 +232,7 @@ void FGridlyLocalizationServiceProvider::AddTargetToolbarButtons(FToolBarBuilder
 		ToolbarBuilder.AddToolBarButton(
 			FGridlyLocalizationTargetEditorCommands::Get().ExportTranslationsForTargetToGridly, NAME_None,
 			TAttribute<FText>(), TAttribute<FText>(), FSlateIcon(FGridlyStyle::GetStyleSetName(),
-				"Gridly.ExportAction"));
+				"Gridly.ExportAllAction"));
 	}
 }
 #endif	  // LOCALIZATION_SERVICES_WITH_SLATE
