@@ -157,9 +157,37 @@ UGridlyGameSettings::UGridlyGameSettings() :
 		{"zu-ZA", "zuZA"},
 	})
 {
+#if WITH_EDITOR
+	GConfig->GetString(
+		TEXT("Gridly"),
+		TEXT("GridlyExportApiKey"),
+		ExportApiKey,
+		GEditorPerProjectIni
+		);
+	GConfig->GetString(TEXT("Gridly"),
+		TEXT("GridlyExportViewId"),
+		ExportViewId,
+		GEditorPerProjectIni
+		);
+#endif
 }
 
 bool UGridlyGameSettings::OnSettingsSaved()
 {
+	UGridlyGameSettings* GridlyGameSettings = GetMutableDefault<UGridlyGameSettings>();
+
+#if WITH_EDITOR
+	GConfig->SetString(
+		TEXT("Gridly"),
+		TEXT("GridlyExportApiKey"),
+		*GridlyGameSettings->ExportApiKey,
+		GEditorPerProjectIni
+		);
+	GConfig->SetString(TEXT("Gridly"),
+		TEXT("GridlyExportViewId"),
+		*GridlyGameSettings->ExportViewId,
+		GEditorPerProjectIni
+		);
+#endif
 	return true;
 }

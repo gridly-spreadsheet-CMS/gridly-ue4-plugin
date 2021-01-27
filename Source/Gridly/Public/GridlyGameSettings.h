@@ -20,11 +20,11 @@ public:
 	TArray<FString> ImportFromViewIds;
 
 	/** The view ID to export the source strings to. */
-	UPROPERTY(Category = "Gridly|Export Settings", BlueprintReadOnly, EditAnywhere, Config)
+	UPROPERTY(Category = "Gridly|Export Settings", BlueprintReadOnly, EditAnywhere, Transient)
 	FString ExportApiKey;
 
 	/** The view ID to export the source strings to. */
-	UPROPERTY(Category = "Gridly|Export Settings", BlueprintReadOnly, EditAnywhere, Config)
+	UPROPERTY(Category = "Gridly|Export Settings", BlueprintReadOnly, EditAnywhere, Transient)
 	FString ExportViewId;
 
 	/** Use combined comma-separated "{namespace},{key}" as record ID. WARNING! This should not be changed after a project has already been exported */
