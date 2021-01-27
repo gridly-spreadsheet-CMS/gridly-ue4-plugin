@@ -6,6 +6,7 @@
 #include "DataTableEditorUtils.h"
 #include "DesktopPlatformModule.h"
 #include "GridlyEditor.h"
+#include "GridlyExporter.h"
 #include "GridlyGameSettings.h"
 #include "GridlyLocalizedTextConverter.h"
 #include "GridlyStyle.h"
@@ -293,7 +294,7 @@ void FAssetTypeActions_GridlyDataTable::ExportToGridly(UGridlyDataTable* DataTab
 	ExportDataTableToGridlySlowTask->MakeDialog();
 
 	FString JsonString;
-	if (FGridlyLocalizedTextConverter::ConvertToJson(DataTable, JsonString))
+	if (FGridlyExporter::ConvertToJson(DataTable, JsonString))
 	{
 		UE_LOG(LogGridlyEditor, Log, TEXT("%s"), *JsonString);
 

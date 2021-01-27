@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 
-#include "GridlyDataTable.h"
 #include "GridlyTableRow.h"
 
 class GRIDLY_API FGridlyLocalizedTextConverter
@@ -13,8 +12,4 @@ public:
 	static bool TableRowsToPolyglotTextDatas(const TArray<FGridlyTableRow>& TableRows,
 		TMap<FString, FPolyglotTextData>& OutPolyglotTextDatas);
 	static bool WritePoFile(const TArray<FPolyglotTextData>& PolyglotTextDatas, const FString& TargetCulture, const FString& Path);
-
-	static bool ConvertToJson(const TArray<FPolyglotTextData>& PolyglotTextDatas, bool bIncludeTargetTranslations,
-		FString& OutJsonString);
-	static bool ConvertToJson(const UGridlyDataTable* GridlyDataTable, FString& OutJsonString);
 };

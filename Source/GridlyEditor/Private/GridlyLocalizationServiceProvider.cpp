@@ -3,6 +3,7 @@
 #include "GridlyLocalizationServiceProvider.h"
 
 #include "GridlyEditor.h"
+#include "GridlyExporter.h"
 #include "GridlyGameSettings.h"
 #include "GridlyLocalizedText.h"
 #include "GridlyLocalizedTextConverter.h"
@@ -347,7 +348,7 @@ void FGridlyLocalizationServiceProvider::ExportNativeCultureForTargetToGridly(
 			if (FGridlyLocalizedText::GetAllTextAsPolyglotTextDatas(InLocalizationTarget, PolyglotTextDatas))
 			{
 				FString JsonString;
-				FGridlyLocalizedTextConverter::ConvertToJson(PolyglotTextDatas, false, JsonString);
+				FGridlyExporter::ConvertToJson(PolyglotTextDatas, false, JsonString);
 				UE_LOG(LogGridlyEditor, Log, TEXT("%s"), *JsonString);
 				UE_LOG(LogGridlyEditor, Log, TEXT("Number of entries: %d"), PolyglotTextDatas.Num());
 
@@ -437,7 +438,7 @@ void FGridlyLocalizationServiceProvider::ExportTranslationsForTargetToGridly(TWe
 			if (FGridlyLocalizedText::GetAllTextAsPolyglotTextDatas(InLocalizationTarget, PolyglotTextDatas))
 			{
 				FString JsonString;
-				FGridlyLocalizedTextConverter::ConvertToJson(PolyglotTextDatas, true, JsonString);
+				FGridlyExporter::ConvertToJson(PolyglotTextDatas, true, JsonString);
 				UE_LOG(LogGridlyEditor, Log, TEXT("%s"), *JsonString);
 				UE_LOG(LogGridlyEditor, Log, TEXT("Number of entries: %d"), PolyglotTextDatas.Num());
 
