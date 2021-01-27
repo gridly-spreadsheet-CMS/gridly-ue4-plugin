@@ -23,6 +23,7 @@ private:
 	void ExecuteExportAsJSON(TArray<TWeakObjectPtr<UObject>> Objects);
 
 private:
-	void ImportFromGridly(UDataTable* DataTable);
+	void ImportFromGridly(UGridlyDataTable* DataTable);
+	void ExportToGridly(UGridlyDataTable* DataTable);
 	void AddToolbarButton(FToolBarBuilder& Builder);
 };

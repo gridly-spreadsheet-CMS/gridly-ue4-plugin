@@ -5,9 +5,13 @@
 #include "AssetTypeActions_CSVAssetBase.h"
 #include "DataTableEditorUtils.h"
 #include "DesktopPlatformModule.h"
+#include "GridlyEditor.h"
+#include "GridlyGameSettings.h"
+#include "GridlyLocalizedTextConverter.h"
 #include "GridlyStyle.h"
 #include "GridlyTableRow.h"
 #include "GridlyTask_ImportDataTableFromGridly.h"
+#include "HttpModule.h"
 #include "IDesktopPlatform.h"
 #include "JsonObjectConverter.h"
 #include "Slate.h"
@@ -29,6 +33,7 @@ public:
 	}
 
 	TSharedPtr<FUICommandInfo> ImportFromGridly;
+	TSharedPtr<FUICommandInfo> ExportToGridly;
 
 	/** Initialize commands */
 	virtual void RegisterCommands() override;
@@ -38,6 +43,9 @@ void FGridlyDataTableCommands::RegisterCommands()
 {
 	UI_COMMAND(ImportFromGridly, "Import from Gridly",
 		"Imports data table from Gridly.", EUserInterfaceActionType::Button, FInputChord());
+
+	UI_COMMAND(ExportToGridly, "Export to Gridly",
+		"Exports data table to Gridly.", EUserInterfaceActionType::Button, FInputChord());
 }
 
 void FAssetTypeActions_GridlyDataTable::GetActions(const TArray<UObject*>& InObjects, FToolMenuSection& Section)
@@ -148,10 +156,15 @@ void FAssetTypeActions_GridlyDataTable::OpenAssetEditor(const TArray<UObject*>& 
 
 	for (UDataTable* Table : DataTablesToOpen)
 	{
+		UGridlyDataTable* GridlyDataTable = Cast<UGridlyDataTable>(Table);
+
 		TSharedPtr<FExtender> Extender = MakeShareable(new FExtender);
 		TSharedPtr<FUICommandList> CommandList = MakeShareable(new FUICommandList);
 		CommandList->MapAction(FGridlyDataTableCommands::Get().ImportFromGridly,
-			FExecuteAction::CreateRaw(this, &FAssetTypeActions_GridlyDataTable::ImportFromGridly, Table));
+			FExecuteAction::CreateRaw(this, &FAssetTypeActions_GridlyDataTable::ImportFromGridly, GridlyDataTable));
+		CommandList->MapAction(FGridlyDataTableCommands::Get().ExportToGridly,
+			FExecuteAction::CreateRaw(this, &FAssetTypeActions_GridlyDataTable::ExportToGridly, GridlyDataTable));
+
 		Extender->AddToolBarExtension("DataTableCommands", EExtensionHook::Before, CommandList,
 			FToolBarExtensionDelegate::CreateRaw(this, &FAssetTypeActions_GridlyDataTable::AddToolbarButton));
 		DataTableEditorModule.GetToolBarExtensibilityManager()->AddExtender(Extender);
@@ -168,8 +181,8 @@ void FAssetTypeActions_GridlyDataTable::ExecuteImportFromGridly(TArray<TWeakObje
 {
 	for (auto ObjIt = Objects.CreateConstIterator(); ObjIt; ++ObjIt)
 	{
-		const auto DataTable = Cast<UDataTable>((*ObjIt).Get());
-		ImportFromGridly(DataTable);
+		UGridlyDataTable* GridlyDataTable = Cast<UGridlyDataTable>((*ObjIt).Get());
+		ImportFromGridly(GridlyDataTable);
 	}
 }
 
@@ -244,7 +257,7 @@ void FAssetTypeActions_GridlyDataTable::ExecuteExportAsJSON(TArray<TWeakObjectPt
 	}
 }
 
-void FAssetTypeActions_GridlyDataTable::ImportFromGridly(UDataTable* DataTable)
+void FAssetTypeActions_GridlyDataTable::ImportFromGridly(UGridlyDataTable* DataTable)
 {
 	TSharedPtr<FScopedSlowTask, ESPMode::Fast> ImportDataTableFromGridlySlowTask = MakeShareable(new FScopedSlowTask(1.f,
 		LOCTEXT("ImportGridlyDataTableSlowTask", "Importing data table from Gridly")));
@@ -259,7 +272,7 @@ void FAssetTypeActions_GridlyDataTable::ImportFromGridly(UDataTable* DataTable)
 
 	ImportDataTableFromGridlySlowTask->EnterProgressFrame(.5f);
 
-			FDataTableEditorUtils::BroadcastPreChange(GridlyDataTable, FDataTableEditorUtils::EDataTableChangeInfo::RowList);
+	FDataTableEditorUtils::BroadcastPreChange(GridlyDataTable, FDataTableEditorUtils::EDataTableChangeInfo::RowList);
 
 	Task->OnSuccessDelegate.BindLambda(
 		[GridlyDataTable, ImportDataTableFromGridlySlowTask](const TArray<FGridlyTableRow>& GridlyTableRows) mutable
@@ -272,6 +285,48 @@ void FAssetTypeActions_GridlyDataTable::ImportFromGridly(UDataTable* DataTable)
 	Task->Activate();
 }
 
+void FAssetTypeActions_GridlyDataTable::ExportToGridly(UGridlyDataTable* DataTable)
+{
+	TSharedPtr<FScopedSlowTask, ESPMode::Fast> ExportDataTableToGridlySlowTask = MakeShareable(new FScopedSlowTask(1.f,
+		LOCTEXT("ExportGridlyDataTableSlowTask", "Exporting data table to Gridly")));
+
+	ExportDataTableToGridlySlowTask->MakeDialog();
+
+	FString JsonString;
+	if (FGridlyLocalizedTextConverter::ConvertToJson(DataTable, JsonString))
+	{
+		UE_LOG(LogGridlyEditor, Log, TEXT("%s"), *JsonString);
+
+		UGridlyGameSettings* GameSettings = GetMutableDefault<UGridlyGameSettings>();
+		const FString ApiKey = GameSettings->ExportApiKey;
+		const FString ViewId = DataTable->ViewId;
+
+		FStringFormatNamedArguments Args;
+		Args.Add(TEXT("ViewId"), *ViewId);
+		const FString Url = FString::Format(TEXT("https://api.gridly.com/v1/views/{ViewId}/records"), Args);
+
+		auto HttpRequest = FHttpModule::Get().CreateRequest();
+		HttpRequest->SetHeader(TEXT("Accept"), TEXT("application/json"));
+		HttpRequest->SetHeader(TEXT("Content-Type"), TEXT("application/json"));
+		HttpRequest->SetHeader(TEXT("Authorization"), FString::Printf(TEXT("ApiKey %s"), *ApiKey));
+		HttpRequest->SetContentAsString(JsonString);
+		HttpRequest->SetVerb(TEXT("PATCH"));
+		HttpRequest->SetURL(Url);
+		
+		ExportDataTableToGridlySlowTask->EnterProgressFrame(.5f);
+
+		HttpRequest->OnProcessRequestComplete().
+		             BindLambda([ExportDataTableToGridlySlowTask](FHttpRequestPtr HttpRequest,
+			             FHttpResponsePtr HttpResponse, bool bSuccess) mutable
+			             {
+				             ExportDataTableToGridlySlowTask->EnterProgressFrame(.5f);
+				             ExportDataTableToGridlySlowTask.Reset();
+			             });
+
+		HttpRequest->ProcessRequest();
+	}
+}
+
 void FAssetTypeActions_GridlyDataTable::AddToolbarButton(FToolBarBuilder& Builder)
 {
 	Builder.AddToolBarButton(
@@ -280,6 +335,14 @@ void FAssetTypeActions_GridlyDataTable::AddToolbarButton(FToolBarBuilder& Builde
 		LOCTEXT("ImportFromGridly", "Import from Gridly"),
 		LOCTEXT("ImportFromGridlyTooltip", "Import data table from Gridly"),
 		FSlateIcon(FGridlyStyle::GetStyleSetName(), "Gridly.ImportAction")
+		);
+
+	Builder.AddToolBarButton(
+		FGridlyDataTableCommands::Get().ExportToGridly,
+		NAME_None,
+		LOCTEXT("ExportToGridly", "Export to Gridly"),
+		LOCTEXT("ExportToGridlyTooltip", "Export data table to Gridly"),
+		FSlateIcon(FGridlyStyle::GetStyleSetName(), "Gridly.ExportAction")
 		);
 }
 

@@ -4,6 +4,7 @@
 
 #include "Gridly.h"
 #include "GridlyCultureConverter.h"
+#include "GridlyDataTableImporterJSON.h"
 #include "GridlyGameSettings.h"
 #include "Internationalization/PolyglotTextData.h"
 #include "Misc/FileHelper.h"
@@ -216,6 +217,128 @@ bool FGridlyLocalizedTextConverter::ConvertToJson(const TArray<FPolyglotTextData
 
 	const TSharedRef<TJsonWriter<>> JsonWriter = TJsonStringWriter<>::Create(&OutJsonString);
 	if (FJsonSerializer::Serialize(Rows, JsonWriter))
+	{
+		return true;
+	}
+
+	return false;
+}
+
+bool FGridlyLocalizedTextConverter::ConvertToJson(const UGridlyDataTable* GridlyDataTable, FString& OutJsonString)
+{
+	UGridlyGameSettings* GameSettings = GetMutableDefault<UGridlyGameSettings>();
+	const TArray<FString> TargetCultures = FGridlyCultureConverter::GetTargetCultures();
+
+	const bool bUseCombinedNamespaceKey = GameSettings->bUseCombinedNamespaceId;
+	const bool bUsePathAsNamespace = !bUseCombinedNamespaceKey && GameSettings->NamespaceColumnId == "path";
+
+	if (!GridlyDataTable->RowStruct)
+	{
+		return false;
+	}
+
+	FString KeyField = GridlyDataTableJSONUtils::GetKeyFieldName(*GridlyDataTable);
+
+	auto JsonWriter = TJsonWriterFactory<TCHAR, TPrettyJsonPrintPolicy<TCHAR>>::Create(&OutJsonString);
+
+	JsonWriter->WriteArrayStart();
+
+	// Iterate over rows
+	for (auto RowIt = GridlyDataTable->GetRowMap().CreateConstIterator(); RowIt; ++RowIt)
+	{
+		JsonWriter->WriteObjectStart();
+		{
+			// RowName
+			const FName RowName = RowIt.Key();
+			JsonWriter->WriteValue("id", RowName.ToString());
+
+			// Now the values
+			JsonWriter->WriteArrayStart("cells");
+
+			uint8* RowData = RowIt.Value();
+			
+			for (TFieldIterator<const FProperty> It(GridlyDataTable->GetRowStruct()); It; ++It)
+			{
+				const FProperty* BaseProp = *It;
+				check(BaseProp);
+
+				const EDataTableExportFlags DTExportFlags = EDataTableExportFlags::None;
+
+				const FString Identifier = DataTableUtils::GetPropertyExportName(BaseProp, DTExportFlags);
+				const void* Data = BaseProp->ContainerPtrToValuePtr<void>(RowData, 0);
+
+				if (BaseProp->ArrayDim == 1)
+				{
+					JsonWriter->WriteObjectStart();
+
+					const FString ExportId = DataTableUtils::GetPropertyExportName(BaseProp, DTExportFlags);
+					JsonWriter->WriteValue("columnId", ExportId);
+
+					if (const FEnumProperty* EnumProp = CastField<const FEnumProperty>(BaseProp))
+					{
+						const FString PropertyValue = DataTableUtils::GetPropertyValueAsString(EnumProp,
+							static_cast<uint8*>(RowData), DTExportFlags);
+						JsonWriter->WriteValue("value", PropertyValue);
+					}
+					else if (const FNumericProperty* NumProp = CastField<const FNumericProperty>(BaseProp))
+					{
+						if (NumProp->IsEnum())
+						{
+							const FString PropertyValue = DataTableUtils::GetPropertyValueAsString(BaseProp,
+								static_cast<uint8*>(RowData), DTExportFlags);
+							JsonWriter->WriteValue("value", PropertyValue);
+						}
+						else if (NumProp->IsInteger())
+						{
+							const int64 PropertyValue = NumProp->GetSignedIntPropertyValue(Data);
+							JsonWriter->WriteValue("value", PropertyValue);
+						}
+						else
+						{
+							const double PropertyValue = NumProp->GetFloatingPointPropertyValue(Data);
+							JsonWriter->WriteValue("value", PropertyValue);
+						}
+					}
+					else if (const FBoolProperty* BoolProp = CastField<const FBoolProperty>(BaseProp))
+					{
+						const bool PropertyValue = BoolProp->GetPropertyValue(Data);
+						JsonWriter->WriteValue("value", PropertyValue);
+					}
+					else if (const FArrayProperty* ArrayProp = CastField<const FArrayProperty>(BaseProp))
+					{
+						// Not supported
+					}
+					else if (const FSetProperty* SetProp = CastField<const FSetProperty>(BaseProp))
+					{
+						// Not supported
+					}
+					else if (const FMapProperty* MapProp = CastField<const FMapProperty>(BaseProp))
+					{
+						// Not supported
+					}
+					else if (const FStructProperty* StructProp = CastField<const FStructProperty>(BaseProp))
+					{
+						// Not supported
+					}
+					else
+					{
+						const FString PropertyValue = DataTableUtils::GetPropertyValueAsString(BaseProp,
+							static_cast<uint8*>(RowData), DTExportFlags);
+						JsonWriter->WriteValue("value", PropertyValue);
+					}
+
+					JsonWriter->WriteObjectEnd();
+				}
+			}
+
+			JsonWriter->WriteArrayEnd();
+		}
+		JsonWriter->WriteObjectEnd();
+	}
+
+	JsonWriter->WriteArrayEnd();
+
+	if (JsonWriter->Close())
 	{
 		return true;
 	}

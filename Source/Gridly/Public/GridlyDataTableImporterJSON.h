@@ -7,6 +7,11 @@
 #include "Json.h"
 #include "Engine/DataTable.h"
 
+namespace GridlyDataTableJSONUtils
+{
+	FString GRIDLY_API GetKeyFieldName(const UDataTable& InDataTable);
+}
+
 class GRIDLY_API FGridlyDataTableImporterJSON
 {
 public:

@@ -44,7 +44,6 @@ FString GetKeyFieldName(const UDataTable& InDataTable)
 }
 }
 
-
 FGridlyDataTableImporterJSON::FGridlyDataTableImporterJSON(UDataTable& InDataTable, const FString& InJSONData, TArray<FString>& OutProblems) :
 	DataTable(&InDataTable),
 	JSONData(InJSONData),
