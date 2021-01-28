@@ -21,20 +21,20 @@ UGridlyTask_ImportDataTableFromGridly::UGridlyTask_ImportDataTableFromGridly()
 
 void UGridlyTask_ImportDataTableFromGridly::Activate()
 {
+	UGridlyGameSettings* GameSettings = GetMutableDefault<UGridlyGameSettings>();
+
+	Limit = 1000; // TODO Change this default
+	TotalCount = 0;
+
+	ViewIds.Reset();
 	if (GridlyDataTable && !GridlyDataTable->ViewId.IsEmpty())
 	{
-		UGridlyGameSettings* GameSettings = GetMutableDefault<UGridlyGameSettings>();
-
-		Limit = 1000; // TODO Change this default
-		TotalCount = 0;
-
-		ViewIds.Reset();
 		ViewIds.Add(GridlyDataTable->ViewId);
-
-		GridlyTableRows.Reset();
-
-		RequestPage(0, 0);
 	}
+
+	GridlyTableRows.Reset();
+
+	RequestPage(0, 0);
 }
 
 void UGridlyTask_ImportDataTableFromGridly::RequestPage(const int ViewIdIndex, const int Offset)
@@ -44,7 +44,10 @@ void UGridlyTask_ImportDataTableFromGridly::RequestPage(const int ViewIdIndex, c
 
 	if (ViewIds.Num() == 0)
 	{
-		UE_LOG(LogGridly, Error, TEXT("Unable to import texts: no view IDs were specified"));
+		const FGridlyResult FailResult = FGridlyResult{"Unable to import data table: no view IDs were specified"};
+		UE_LOG(LogGridly, Error, TEXT("%s"), *FailResult.Message);
+		OnFail.Broadcast(GridlyTableRows, 1.f, FailResult);
+		OnFailDelegate.ExecuteIfBound(GridlyTableRows, FailResult);
 		return;
 	}
 
@@ -144,7 +147,7 @@ void UGridlyTask_ImportDataTableFromGridly::RequestPage(const int ViewIdIndex, c
 void UGridlyTask_ImportDataTableFromGridly::OnProcessRequestComplete(FHttpRequestPtr HttpRequestPtr,
 	FHttpResponsePtr HttpResponsePtr, bool bSuccess)
 {
-	if (bSuccess)
+	if (bSuccess && HttpResponsePtr->GetResponseCode() == EHttpResponseCodes::Ok)
 	{
 		// Header
 
@@ -192,7 +195,7 @@ void UGridlyTask_ImportDataTableFromGridly::OnProcessRequestComplete(FHttpReques
 	}
 	else
 	{
-		const FGridlyResult FailResult = FGridlyResult{"Failed to connect to gridly"};
+		const FGridlyResult FailResult = FGridlyResult{"Failed to connect to Gridly"};
 		OnFail.Broadcast(GridlyTableRows, 1.f, FailResult);
 		OnFailDelegate.ExecuteIfBound(GridlyTableRows, FailResult);
 	}

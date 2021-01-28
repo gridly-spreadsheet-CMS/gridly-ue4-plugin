@@ -19,6 +19,7 @@
 #include "ToolMenus.h"
 #include "Editor/DataTableEditor/Public/DataTableEditorModule.h"
 #include "EditorFramework/AssetImportData.h"
+#include "Interfaces/IHttpResponse.h"
 #include "Misc/MessageDialog.h"
 
 #define LOCTEXT_NAMESPACE "AssetTypeActions"
@@ -260,27 +261,50 @@ void FAssetTypeActions_GridlyDataTable::ExecuteExportAsJSON(TArray<TWeakObjectPt
 
 void FAssetTypeActions_GridlyDataTable::ImportFromGridly(UGridlyDataTable* DataTable)
 {
-	TSharedPtr<FScopedSlowTask, ESPMode::Fast> ImportDataTableFromGridlySlowTask = MakeShareable(new FScopedSlowTask(1.f,
-		LOCTEXT("ImportGridlyDataTableSlowTask", "Importing data table from Gridly")));
+	const FString ConfirmMessage = FString::Printf(
+		TEXT("This will overwrite the contents of this data table. Are you sure you wish to continue?"));
+	const EAppReturnType::Type MessageReturn = FMessageDialog::Open(EAppMsgType::YesNo,
+		FText::FromString(ConfirmMessage));
 
-	ImportDataTableFromGridlySlowTask->MakeDialog();
-
+	if (MessageReturn != EAppReturnType::Yes)
+	{
+		return;
+	}
+	
 	UGridlyDataTable* GridlyDataTable = Cast<UGridlyDataTable>(DataTable);
 	check(GridlyDataTable);
+
+	TSharedPtr<FScopedSlowTask, ESPMode::ThreadSafe> ImportDataTableFromGridlySlowTask = MakeShareable(new FScopedSlowTask(1.f,
+		LOCTEXT("ImportGridlyDataTableSlowTask", "Importing data table from Gridly")));
+	auto& SlowTask = ImportSlowTasks.Add(DataTable->GetUniqueID(), ImportDataTableFromGridlySlowTask);
+
+	SlowTask->MakeDialog();
 
 	UGridlyTask_ImportDataTableFromGridly* Task =
 		UGridlyTask_ImportDataTableFromGridly::ImportDataTableFromGridly(nullptr, GridlyDataTable);
 
-	ImportDataTableFromGridlySlowTask->EnterProgressFrame(.5f);
+	SlowTask->EnterProgressFrame(.5f);
 
 	FDataTableEditorUtils::BroadcastPreChange(GridlyDataTable, FDataTableEditorUtils::EDataTableChangeInfo::RowList);
 
 	Task->OnSuccessDelegate.BindLambda(
-		[GridlyDataTable, ImportDataTableFromGridlySlowTask](const TArray<FGridlyTableRow>& GridlyTableRows) mutable
+		[GridlyDataTable, &SlowTask](const TArray<FGridlyTableRow>& GridlyTableRows) mutable
 		{
-			ImportDataTableFromGridlySlowTask->EnterProgressFrame(.5f);
-			ImportDataTableFromGridlySlowTask.Reset();
+			SlowTask->EnterProgressFrame(.5f);
+			SlowTask.Reset();
 			FDataTableEditorUtils::BroadcastPostChange(GridlyDataTable, FDataTableEditorUtils::EDataTableChangeInfo::RowList);
+		});
+
+	Task->OnFailDelegate.BindLambda(
+		[GridlyDataTable, &SlowTask](const TArray<FGridlyTableRow>& GridlyTableRows,
+		const FGridlyResult& GridlyResult) mutable
+		{
+			SlowTask.Reset();
+			FDataTableEditorUtils::BroadcastPostChange(GridlyDataTable, FDataTableEditorUtils::EDataTableChangeInfo::RowList);
+
+			const FString ErrorMessage = GridlyResult.Message;
+			UE_LOG(LogGridlyEditor, Error, TEXT("%s"), *ErrorMessage);
+			FMessageDialog::Open(EAppMsgType::Ok, FText::FromString(ErrorMessage));
 		});
 
 	Task->Activate();
@@ -288,6 +312,19 @@ void FAssetTypeActions_GridlyDataTable::ImportFromGridly(UGridlyDataTable* DataT
 
 void FAssetTypeActions_GridlyDataTable::ExportToGridly(UGridlyDataTable* DataTable)
 {
+	const FString ConfirmMessage = FString::Printf(
+		TEXT("This may overwrite some of your data on Gridly (view ID %s). Are you sure you wish to export?"), *DataTable->ViewId);
+	const EAppReturnType::Type MessageReturn = FMessageDialog::Open(EAppMsgType::YesNo,
+		FText::FromString(ConfirmMessage));
+
+	if (MessageReturn != EAppReturnType::Yes)
+	{
+		return;
+	}
+	
+	UGridlyDataTable* GridlyDataTable = Cast<UGridlyDataTable>(DataTable);
+	check(GridlyDataTable);
+
 	TSharedPtr<FScopedSlowTask, ESPMode::Fast> ExportDataTableToGridlySlowTask = MakeShareable(new FScopedSlowTask(1.f,
 		LOCTEXT("ExportGridlyDataTableSlowTask", "Exporting data table to Gridly")));
 
@@ -311,15 +348,27 @@ void FAssetTypeActions_GridlyDataTable::ExportToGridly(UGridlyDataTable* DataTab
 		HttpRequest->SetContentAsString(JsonString);
 		HttpRequest->SetVerb(TEXT("PATCH"));
 		HttpRequest->SetURL(Url);
-		
+
 		ExportDataTableToGridlySlowTask->EnterProgressFrame(.5f);
 
 		HttpRequest->OnProcessRequestComplete().
 		             BindLambda([ExportDataTableToGridlySlowTask](FHttpRequestPtr HttpRequest,
 			             FHttpResponsePtr HttpResponse, bool bSuccess) mutable
 			             {
-				             ExportDataTableToGridlySlowTask->EnterProgressFrame(.5f);
-				             ExportDataTableToGridlySlowTask.Reset();
+				             if (bSuccess)
+				             {
+					             ExportDataTableToGridlySlowTask->EnterProgressFrame(.5f);
+					             ExportDataTableToGridlySlowTask.Reset();
+				             }
+				             else
+				             {
+					             ExportDataTableToGridlySlowTask.Reset();
+					             const FString Content = HttpResponse->GetContentAsString();
+					             const FString ErrorReason =
+						             FString::Printf(TEXT("Error: %d, reason: %s"), HttpResponse->GetResponseCode(), *Content);
+					             UE_LOG(LogGridlyEditor, Error, TEXT("%s"), *ErrorReason);
+					             FMessageDialog::Open(EAppMsgType::Ok, FText::FromString(ErrorReason));
+				             }
 			             });
 
 		HttpRequest->ProcessRequest();
@@ -344,5 +393,7 @@ void FAssetTypeActions_GridlyDataTable::AddToolbarButton(FToolBarBuilder& Builde
 		FSlateIcon(FGridlyStyle::GetStyleSetName(), "Gridly.ExportAction")
 		);
 }
+
+TMap<uint32, TSharedPtr<FScopedSlowTask, ESPMode::ThreadSafe>> FAssetTypeActions_GridlyDataTable::ImportSlowTasks;
 
 #undef LOCTEXT_NAMESPACE

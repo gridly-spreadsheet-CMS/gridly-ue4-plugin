@@ -27,7 +27,13 @@ void UGridlyTask_DownloadLocalizedTexts::Activate()
 	TotalCount = 0;
 
 	ViewIds.Reset();
-	ViewIds.Append(GameSettings->ImportFromViewIds);
+	for (int i = 0; i < GameSettings->ImportFromViewIds.Num();i++)
+	{
+		if (!GameSettings->ImportFromViewIds[i].IsEmpty())
+		{
+			ViewIds.Add(GameSettings->ImportFromViewIds[i]);
+		}
+	}
 
 	PolyglotTextDatas.Reset();
 
@@ -41,14 +47,17 @@ void UGridlyTask_DownloadLocalizedTexts::RequestPage(const int ViewIdIndex, cons
 
 	if (ViewIds.Num() == 0)
 	{
-		UE_LOG(LogGridly, Error, TEXT("Unable to import texts: no view IDs were specified"));
+		const FGridlyResult FailResult = FGridlyResult{"Unable to import texts: no view IDs were specified" };
+		UE_LOG(LogGridly, Error, TEXT("%s"), *FailResult.Message);
+		OnFail.Broadcast(PolyglotTextDatas, 1.f, FailResult);
+		OnFailDelegate.ExecuteIfBound(PolyglotTextDatas, FailResult);
 		return;
 	}
 
 	if (ViewIdIndex < ViewIds.Num())
 	{
 		const FString& ViewId = ViewIds[ViewIdIndex];
-
+		
 		UGridlyGameSettings* GameSettings = GetMutableDefault<UGridlyGameSettings>();
 		const FString ApiKey = GameSettings->ImportApiKey;
 
@@ -103,7 +112,7 @@ void UGridlyTask_DownloadLocalizedTexts::RequestPage(const int ViewIdIndex, cons
 void UGridlyTask_DownloadLocalizedTexts::OnProcessRequestComplete(FHttpRequestPtr HttpRequestPtr,
 	FHttpResponsePtr HttpResponsePtr, bool bSuccess)
 {
-	if (bSuccess)
+	if (bSuccess && HttpResponsePtr->GetResponseCode() == EHttpResponseCodes::Ok)
 	{
 		// Header
 
@@ -155,7 +164,7 @@ void UGridlyTask_DownloadLocalizedTexts::OnProcessRequestComplete(FHttpRequestPt
 	}
 	else
 	{
-		const FGridlyResult FailResult = FGridlyResult{"Failed to connect to gridly"};
+		const FGridlyResult FailResult = FGridlyResult{"Failed to connect to Gridly"};
 		OnFail.Broadcast(PolyglotTextDatas, 1.f, FailResult);
 		OnFailDelegate.ExecuteIfBound(PolyglotTextDatas, FailResult);
 	}

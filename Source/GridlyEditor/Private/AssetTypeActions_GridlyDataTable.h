@@ -26,4 +26,6 @@ private:
 	void ImportFromGridly(UGridlyDataTable* DataTable);
 	void ExportToGridly(UGridlyDataTable* DataTable);
 	void AddToolbarButton(FToolBarBuilder& Builder);
+
+	static TMap<uint32, TSharedPtr<FScopedSlowTask, ESPMode::ThreadSafe>> ImportSlowTasks;
 };

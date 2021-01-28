@@ -249,14 +249,19 @@ void FGridlyLocalizationServiceProvider::ImportAllCulturesForTargetFromGridly(
 
 	if (!bIsTargetSet && MessageReturn == EAppReturnType::Yes)
 	{
+		TArray<FString> Cultures;
+
 		for (int i = 0; i < LocalizationTarget->Settings.SupportedCulturesStatistics.Num(); i++)
 		{
 			if (i != LocalizationTarget->Settings.NativeCultureIndex)
 			{
 				const FCultureStatistics CultureStats = LocalizationTarget->Settings.SupportedCulturesStatistics[i];
-				CurrentCultureDownloads.Add(CultureStats.CultureName);
+				Cultures.Add(CultureStats.CultureName);
 			}
 		}
+
+		CurrentCultureDownloads.Append(Cultures);
+		SuccessfulDownloads = 0;
 
 		const float AmountOfWork = CurrentCultureDownloads.Num();
 		ImportAllCulturesForTargetFromGridlySlowTask = MakeShareable(new FScopedSlowTask(AmountOfWork,
@@ -264,10 +269,8 @@ void FGridlyLocalizationServiceProvider::ImportAllCulturesForTargetFromGridly(
 
 		ImportAllCulturesForTargetFromGridlySlowTask->MakeDialog();
 
-		for (const FString& CultureName : CurrentCultureDownloads)
+		for (const FString& CultureName : Cultures)
 		{
-			UE_LOG(LogGridlyEditor, Log, TEXT("Culture: %s"), *CultureName);
-
 			ILocalizationServiceProvider& Provider = ILocalizationServiceModule::Get().GetProvider();
 			TSharedRef<FDownloadLocalizationTargetFile, ESPMode::ThreadSafe> DownloadTargetFileOp =
 				ILocalizationServiceOperation::Create<FDownloadLocalizationTargetFile>();
@@ -285,8 +288,10 @@ void FGridlyLocalizationServiceProvider::ImportAllCulturesForTargetFromGridly(
 			Provider.Execute(DownloadTargetFileOp, TArray<FLocalizationServiceTranslationIdentifier>(),
 				ELocalizationServiceOperationConcurrency::Synchronous, OperationCompleteDelegate);
 
-			FPlatformProcess::Sleep(1.f); // Throttles number of requests by sleeping between each
+			ImportAllCulturesForTargetFromGridlySlowTask->EnterProgressFrame(1.f);
 		}
+
+		ImportAllCulturesForTargetFromGridlySlowTask.Reset();
 	}
 }
 
@@ -298,9 +303,18 @@ void FGridlyLocalizationServiceProvider::OnImportCultureForTargetFromGridly(cons
 
 	CurrentCultureDownloads.Remove(DownloadLocalizationTargetOp->GetInLocale());
 
-	ImportAllCulturesForTargetFromGridlySlowTask->EnterProgressFrame(1.f);
+	if (Result == ELocalizationServiceOperationCommandResult::Succeeded)
+	{
+		SuccessfulDownloads++;
+	}
+	else
+	{
+		const FText ErrorMessage = DownloadLocalizationTargetOp->GetOutErrorText();
+		UE_LOG(LogGridlyEditor, Error, TEXT("%s"), *ErrorMessage.ToString());
+		FMessageDialog::Open(EAppMsgType::Ok, FText::FromString(ErrorMessage.ToString()));
+	}
 
-	if (CurrentCultureDownloads.Num() == 0)
+	if (CurrentCultureDownloads.Num() == 0 && SuccessfulDownloads > 0)
 	{
 		const FString TargetName = FPaths::GetBaseFilename(DownloadLocalizationTargetOp->GetInRelativeOutputFilePathAndName());
 
@@ -312,6 +326,7 @@ void FGridlyLocalizationServiceProvider::OnImportCultureForTargetFromGridly(cons
 
 		IMainFrameModule& MainFrameModule = FModuleManager::LoadModuleChecked<IMainFrameModule>(TEXT("MainFrame"));
 		const TSharedPtr<SWindow>& MainFrameParentWindow = MainFrameModule.GetParentWindow();
+		
 		if (!bIsTargetSet)
 		{
 			LocalizationCommandletTasks::ImportTextForTarget(MainFrameParentWindow.ToSharedRef(), Target,
@@ -320,8 +335,6 @@ void FGridlyLocalizationServiceProvider::OnImportCultureForTargetFromGridly(cons
 			Target->UpdateWordCountsFromCSV();
 			Target->UpdateStatusFromConflictReport();
 		}
-
-		ImportAllCulturesForTargetFromGridlySlowTask.Reset();
 	}
 }
 

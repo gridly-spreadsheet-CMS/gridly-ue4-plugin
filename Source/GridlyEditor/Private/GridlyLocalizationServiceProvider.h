@@ -59,6 +59,7 @@ private:
 		ELocalizationServiceOperationCommandResult::Type Result, bool bIsTargetSet);
 	TSharedPtr<FScopedSlowTask> ImportAllCulturesForTargetFromGridlySlowTask;
 	TArray<FString> CurrentCultureDownloads;
+	int SuccessfulDownloads;
 
 	// Export
 
