@@ -91,6 +91,12 @@ After you're done translating, you can import translations for all target cultur
 
 ![Import from Gridly](Documentation/ImportGridly.png)
 
+### Exporting Translations
+
+If you have existing translations in UE4, these can also be exported to Gridly with a single click (you usually only need to do this once).
+
+![Export all to Gridly](Documentation/ExportTranslations.png)
+
 ## Live Preview
 
 The Gridly plugin also supports updating translations during runtime using the provided Blueprint functions to enable preview mode:
@@ -102,6 +108,28 @@ After making changes on Gridly, the translations can then be updated using the f
 ![Update Live Preview Blueprint](Documentation/UpdateLivePreviewBlueprint.png)
 
 While possible, it is currently *not* recommended to use this mode in a production build! This functionality is for development only (either in PIE mode or Development build). When final translations are ready, you should import your translations [through the Localization Dashboard](#markdown-header-importing-translations).
+
+## Gridly Data Table
+
+The Gridly Data Table is a data table that can be used like a regular data table in UE4 as part of your game's logic. The extra functionality that this plugin provides is that the data can also be edited through the Gridly web app, and synchronized with UE4 both during development and even in the packaged project. To get started, right click in the asset browser to create a Gridly Data Table:
+
+![Create Gridly Data Table](Documentation/CreateGridlyDataTable.png)
+
+You need to select a Structure data type for each row (or a `USTRUCT` that inherits `FTableRowBase` if you're using C++). The difference between GridlyDataTable and a regular data table is that it is mapped to a particular view on Gridly. You can set the view ID that the table is mapped to in the *Data Table Details* panel:
+
+![Set Gridly Data Table View ID](Documentation/SetGridlyDataTableViewId.png)
+
+For the plugin to map the data correctly between Gridly and UE4, the variable names of the Structure needs to be named the exact same as the column IDs of the view you are synchronizing with. Create an empty grid on Gridly and create columns with column IDs that match your Structure variables.
+
+![Create Gridly Data Grid](Documentation/CreateGridlyDataGrid.png)
+
+![Configure Gridly Data Columns](Documentation/ConfigureGridlyDataColumns.png)
+
+Currently, the Gridly Data Table supports synchronizing *Boolean*, *Integer*, *Float*, *String* and *Enum* types. 
+
+You can now import/export data from UE4 to Gridly:
+
+![Import/export Gridly Data Table](Documentation/ImportExportGridlyDataTable.png)
 
 ## Configuring Gridly
 
