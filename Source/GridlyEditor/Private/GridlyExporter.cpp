@@ -14,6 +14,7 @@ bool FGridlyExporter::ConvertToJson(const TArray<FPolyglotTextData>& PolyglotTex
 	const TArray<FString> TargetCultures = FGridlyCultureConverter::GetTargetCultures();
 
 	const bool bUseCombinedNamespaceKey = GameSettings->bUseCombinedNamespaceId;
+	const bool bExportNamespace = !bUseCombinedNamespaceKey || GameSettings->bAlsoExportNamespaceColumn;
 	const bool bUsePathAsNamespace = GameSettings->NamespaceColumnId == "path";
 
 	TArray<TSharedPtr<FJsonValue>> Rows;
@@ -39,16 +40,19 @@ bool FGridlyExporter::ConvertToJson(const TArray<FPolyglotTextData>& PolyglotTex
 
 		// Set namespace/path
 
-		if (bUsePathAsNamespace)
+		if (bExportNamespace)
 		{
-			RowJsonObject->SetStringField("path", Namespace);
-		}
-		else if (!GameSettings->NamespaceColumnId.IsEmpty())
-		{
-			TSharedPtr<FJsonObject> CellJsonObject = MakeShareable(new FJsonObject);
-			CellJsonObject->SetStringField("columnId", GameSettings->NamespaceColumnId);
-			CellJsonObject->SetStringField("value", Namespace);
-			CellsJsonArray.Add(MakeShareable(new FJsonValueObject(CellJsonObject)));
+			if (bUsePathAsNamespace)
+			{
+				RowJsonObject->SetStringField("path", Namespace);
+			}
+			else if (!GameSettings->NamespaceColumnId.IsEmpty())
+			{
+				TSharedPtr<FJsonObject> CellJsonObject = MakeShareable(new FJsonObject);
+				CellJsonObject->SetStringField("columnId", GameSettings->NamespaceColumnId);
+				CellJsonObject->SetStringField("value", Namespace);
+				CellsJsonArray.Add(MakeShareable(new FJsonValueObject(CellJsonObject)));
+			}
 		}
 
 		// Set source language text

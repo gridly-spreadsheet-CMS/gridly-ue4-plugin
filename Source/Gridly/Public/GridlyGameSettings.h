@@ -31,9 +31,14 @@ public:
 	UPROPERTY(Category = "Gridly|Options", BlueprintReadOnly, EditAnywhere, Config)
 	bool bUseCombinedNamespaceId = false;
 
+	/** Exports namespace to a separate column even if using bCombinedNamespaceId  */
+	UPROPERTY(Category = "Gridly|Options", BlueprintReadOnly, EditAnywhere, Config,
+		meta = (EditCondition="bUseCombinedNamespaceId"))
+	bool bAlsoExportNamespaceColumn = false;
+
 	/** Set to "path" to use Gridly's path tag functionality for namespaces. This can also be mapped to any other column of the string type.  */
 	UPROPERTY(Category = "Gridly|Options", BlueprintReadOnly, EditAnywhere, Config,
-		meta = (EditCondition="!bUseCombinedNamespaceId"))
+		meta = (EditCondition="!bUseCombinedNamespaceId || bAlsoExportNamespaceColumn"))
 	FString NamespaceColumnId = "path";
 
 	/** Column ID prefix for source language columns on Gridly */
