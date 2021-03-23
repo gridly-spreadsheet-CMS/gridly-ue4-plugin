@@ -31,7 +31,7 @@ public:
 	UPROPERTY(Category = "Gridly|Options", BlueprintReadOnly, EditAnywhere, Config)
 	bool bUseCombinedNamespaceId = false;
 
-	/** Exports namespace to a separate column even if using bCombinedNamespaceId  */
+	/** Exports namespace to a separate column even if using bUseCombinedNamespaceId  */
 	UPROPERTY(Category = "Gridly|Options", BlueprintReadOnly, EditAnywhere, Config,
 		meta = (EditCondition="bUseCombinedNamespaceId"))
 	bool bAlsoExportNamespaceColumn = false;
