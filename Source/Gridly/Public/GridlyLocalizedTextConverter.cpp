@@ -107,13 +107,19 @@ bool FGridlyLocalizedTextConverter::WritePoFile(const TArray<FPolyglotTextData>&
 	for (int i = 0; i < PolyglotTextDatas.Num(); i++)
 	{
 		FString TargetString;
+
 		if (PolyglotTextDatas[i].GetLocalizedString(TargetCulture, TargetString))
 		{
 			Lines.Add(FString::Printf(TEXT("msgctxt \"%s,%s\""), *PolyglotTextDatas[i].GetNamespace(),
 				*PolyglotTextDatas[i].GetKey()));
-			Lines.Add(FString::Printf(TEXT("msgid \"%s\""), *PolyglotTextDatas[i].GetNativeString()));
+
+			FString NativeString = PolyglotTextDatas[i].GetNativeString().ReplaceCharWithEscapedChar();
+			Lines.Add(FString::Printf(TEXT("msgid \"%s\""), *NativeString));
+
+			TargetString = TargetString.ReplaceCharWithEscapedChar();
 			Lines.Add(FString::Printf(TEXT("msgstr \"%s\""), *TargetString));
-			Lines.Add("");
+
+			Lines.Add(TEXT(""));
 		}
 	}
 
