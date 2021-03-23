@@ -15,15 +15,15 @@ public:
 	UPROPERTY(Category = "Gridly|Import Settings", BlueprintReadOnly, EditAnywhere, Config)
 	FString ImportApiKey;
 
-	/** The view IDs to fetch from Gridly. Record IDs will be combined. Duplicate keys will be ignored. */
+	/** The view IDs to fetch from Gridly. Record IDs will be combined. Duplicate keys will be ignored */
 	UPROPERTY(Category = "Gridly|Import Settings", BlueprintReadOnly, EditAnywhere, Config)
 	TArray<FString> ImportFromViewIds;
 
-	/** The view ID to export the source strings to. */
+	/** The API key can be retrieved from your Gridly dashboard. Make sure you have write access */
 	UPROPERTY(Category = "Gridly|Export Settings", BlueprintReadOnly, EditAnywhere, Transient)
 	FString ExportApiKey;
 
-	/** The view ID to export the source strings to. */
+	/** The view ID to export the source strings to */
 	UPROPERTY(Category = "Gridly|Export Settings", BlueprintReadOnly, EditAnywhere, Transient)
 	FString ExportViewId;
 
@@ -36,7 +36,7 @@ public:
 		meta = (EditCondition="bUseCombinedNamespaceId"))
 	bool bAlsoExportNamespaceColumn = false;
 
-	/** Set to "path" to use Gridly's path tag functionality for namespaces. This can also be mapped to any other column of the string type.  */
+	/** Set to "path" to use Gridly's path tag functionality for namespaces. This can also be mapped to any other column of the string type  */
 	UPROPERTY(Category = "Gridly|Options", BlueprintReadOnly, EditAnywhere, Config,
 		meta = (EditCondition="!bUseCombinedNamespaceId || bAlsoExportNamespaceColumn"))
 	FString NamespaceColumnId = "path";
