@@ -151,7 +151,9 @@ All the settings for Gridly can be found in `Edit -> Project Settings -> Plugins
 
 - *Use Combined Namespace Id*: If you have specified a namespace for your source strings, it will be combined with the key before being sent to Gridly, in the form of `Namespace,Key`. Likewise, it will expect the record ID fetched from Gridly to be in this form and convert it during import. Do not change once configured!
 
-- *Namespace Column Id*: The column ID on Gridly to map the namespace in Unreal to. By default, this is `path`, which is the path tag column. This can be set to any column ID that is configured to be a string. Set this to empty to ignore the namespace. This option works for both import and export. Do not change once configured!
+- *Also Export Namespace Column*: If you are using the above option, you can optionally also export the namespace to a separate column in addition to being used in the ID for translation reference/path tag organization.
+
+- *Namespace Column Id*: The column ID on Gridly to map the namespace in Unreal to. By default, this is `path`, which is the path tag column. This can be set to any column ID that is configured to be a string. This option works for both import and export. Do not change once configured!
 
 - *Source Language Column Id Prefix*: All source language columns on Gridly are expected to use culture mapping as configured below and prefixed with this value. Make sure this matches the column IDs on Gridly.
 
