@@ -14,7 +14,7 @@ bool FGridlyExporter::ConvertToJson(const TArray<FPolyglotTextData>& PolyglotTex
 	const TArray<FString> TargetCultures = FGridlyCultureConverter::GetTargetCultures();
 
 	const bool bUseCombinedNamespaceKey = GameSettings->bUseCombinedNamespaceId;
-	const bool bUsePathAsNamespace = !bUseCombinedNamespaceKey && GameSettings->NamespaceColumnId == "path";
+	const bool bUsePathAsNamespace = GameSettings->NamespaceColumnId == "path";
 
 	TArray<TSharedPtr<FJsonValue>> Rows;
 
