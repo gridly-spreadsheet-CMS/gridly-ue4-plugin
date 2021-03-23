@@ -107,9 +107,6 @@ bool FGridlyExporter::ConvertToJson(const UGridlyDataTable* GridlyDataTable, FSt
 	UGridlyGameSettings* GameSettings = GetMutableDefault<UGridlyGameSettings>();
 	const TArray<FString> TargetCultures = FGridlyCultureConverter::GetTargetCultures();
 
-	const bool bUseCombinedNamespaceKey = GameSettings->bUseCombinedNamespaceId;
-	const bool bUsePathAsNamespace = !bUseCombinedNamespaceKey && GameSettings->NamespaceColumnId == "path";
-
 	if (!GridlyDataTable->RowStruct)
 	{
 		return false;

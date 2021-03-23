@@ -65,8 +65,6 @@ bool FGridlyLocalizedTextConverter::TableRowsToPolyglotTextDatas(const TArray<FG
 
 		// Namespace / key fixes
 
-		Namespace = Namespace.Replace(TEXT(" "), TEXT(""));
-
 		if (bUseCombinedNamespaceKey)
 		{
 			FString NewKey;
@@ -75,6 +73,8 @@ bool FGridlyLocalizedTextConverter::TableRowsToPolyglotTextDatas(const TArray<FG
 				Key = NewKey;
 			}
 		}
+
+		Namespace = Namespace.Replace(TEXT(" "), TEXT(""));
 
 		if (SourceText.IsEmpty() || SourceCulture.IsEmpty())
 		{
