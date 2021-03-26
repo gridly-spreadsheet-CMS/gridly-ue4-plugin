@@ -4,8 +4,12 @@
 
 #include "Gridly.h"
 #include "GridlyGameSettings.h"
+
+#if WITH_EDITOR
 #include "LocalizationSettings.h"
 #include "LocalizationTargetTypes.h"
+#endif
+
 #include "Internationalization/Regex.h"
 #include "Kismet/KismetInternationalizationLibrary.h"
 

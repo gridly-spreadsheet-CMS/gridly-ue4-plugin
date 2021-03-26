@@ -20,10 +20,20 @@ public class Gridly : ModuleRules
 				"SlateCore",
                 "HTTP",
                 "Serialization",
-				"Localization",
 				"Json",
 				"JsonUtilities"
 			}
 			);
+
+		if (Target.bBuildEditor)
+        {
+            PrivateDependencyModuleNames.AddRange(
+                new string[]
+                {
+                    "Settings",
+                    "Localization"
+                }
+                );
+        }
 	}
 }
