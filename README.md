@@ -4,8 +4,6 @@ Gridly is the #1 headless CMS for Multilingual Game Development.
 
 Manage your game’s data as a single source of truth and roll out continuous updates with full localization support & version control.
 
-[TOC]
-
 ## Prerequisites
 
 - Unreal Engine 4.26.0
@@ -16,8 +14,8 @@ Before you use Gridly, you will need to sign up for an account at https://www.gr
 
 Download the Gridly plugin itself, as well as the sample project to get you started:
 
-- [Gridly UE4 Plugin](https://bitbucket.org/localizedirect/gridly-ue4-plugin)
-- [Gridly UE4 Sample Project](https://bitbucket.org/localizedirect/gridly-ue4-plugin-sample-project)
+- [Gridly UE4 Plugin](https://github.com/gridly-spreadsheet-CMS/Gridly-UE4-Plugin)
+- [Gridly UE4 Sample Project](https://github.com/gridly-spreadsheet-CMS/Gridly-UE4-Plugin-Sample-Project)
 
 The sample project is optional, but provides a working example project for reference that has a very basic user interface set up for localization in UE4.
 
