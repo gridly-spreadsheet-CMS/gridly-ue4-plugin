@@ -23,7 +23,7 @@
 		{
 			"Name": "GridlyEditor",
 			"Type": "Editor",
-			"LoadingPhase": "PostEngineInit"
+			"LoadingPhase": "Default"
 		}
 	]
 }
