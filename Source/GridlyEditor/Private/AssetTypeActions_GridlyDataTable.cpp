@@ -346,7 +346,7 @@ void FAssetTypeActions_GridlyDataTable::ExportToGridly(UGridlyDataTable* DataTab
 		HttpRequest->SetHeader(TEXT("Content-Type"), TEXT("application/json"));
 		HttpRequest->SetHeader(TEXT("Authorization"), FString::Printf(TEXT("ApiKey %s"), *ApiKey));
 		HttpRequest->SetContentAsString(JsonString);
-		HttpRequest->SetVerb(TEXT("PATCH"));
+		HttpRequest->SetVerb(TEXT("POST"));
 		HttpRequest->SetURL(Url);
 
 		ExportDataTableToGridlySlowTask->EnterProgressFrame(.5f);

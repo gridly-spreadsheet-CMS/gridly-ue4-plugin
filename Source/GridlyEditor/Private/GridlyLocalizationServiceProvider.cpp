@@ -377,7 +377,7 @@ void FGridlyLocalizationServiceProvider::ExportNativeCultureForTargetToGridly(
 				HttpRequest->SetHeader(TEXT("Content-Type"), TEXT("application/json"));
 				HttpRequest->SetHeader(TEXT("Authorization"), FString::Printf(TEXT("ApiKey %s"), *ApiKey));
 				HttpRequest->SetContentAsString(JsonString);
-				HttpRequest->SetVerb(TEXT("PATCH"));
+				HttpRequest->SetVerb(TEXT("POST"));
 				HttpRequest->SetURL(Url);
 
 				HttpRequest->OnProcessRequestComplete().
@@ -398,7 +398,8 @@ void FGridlyLocalizationServiceProvider::OnExportNativeCultureForTargetToGridly(
 
 	if (bSuccess)
 	{
-		if (HttpResponsePtr->GetResponseCode() == EHttpResponseCodes::Ok)
+		if (HttpResponsePtr->GetResponseCode() == EHttpResponseCodes::Ok ||
+			HttpResponsePtr->GetResponseCode() == EHttpResponseCodes::Created)
 		{
 			const FString Content = HttpResponsePtr->GetContentAsString();
 			const auto JsonStringReader = TJsonReaderFactory<TCHAR>::Create(Content);
@@ -466,7 +467,7 @@ void FGridlyLocalizationServiceProvider::ExportTranslationsForTargetToGridly(TWe
 				HttpRequest->SetHeader(TEXT("Content-Type"), TEXT("application/json"));
 				HttpRequest->SetHeader(TEXT("Authorization"), FString::Printf(TEXT("ApiKey %s"), *ApiKey));
 				HttpRequest->SetContentAsString(JsonString);
-				HttpRequest->SetVerb(TEXT("PATCH"));
+				HttpRequest->SetVerb(TEXT("POST"));
 				HttpRequest->SetURL(Url);
 
 				HttpRequest->OnProcessRequestComplete().
@@ -487,7 +488,8 @@ void FGridlyLocalizationServiceProvider::OnExportTranslationsForTargetToGridly(F
 
 	if (bSuccess)
 	{
-		if (HttpResponsePtr->GetResponseCode() == EHttpResponseCodes::Ok)
+		if (HttpResponsePtr->GetResponseCode() == EHttpResponseCodes::Ok ||
+			HttpResponsePtr->GetResponseCode() == EHttpResponseCodes::Created)
 		{
 			const FString Content = HttpResponsePtr->GetContentAsString();
 			const auto JsonStringReader = TJsonReaderFactory<TCHAR>::Create(Content);
