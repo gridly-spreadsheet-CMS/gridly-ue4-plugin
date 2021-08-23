@@ -1,6 +1,6 @@
 # Gridly for UE4
 
-Gridly is the #1 headless CMS for Multilingual Game Development.
+Gridly is the #1 spreadsheet for multi-language content. Bring your digital assets together and localize at speed!
 
 Manage your game’s data as a single source of truth and roll out continuous updates with full localization support & version control.
 
