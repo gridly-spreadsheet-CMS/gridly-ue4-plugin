@@ -6,7 +6,7 @@ Manage your game’s data as a single source of truth and roll out continuous up
 
 ## Prerequisites
 
-- Unreal Engine 4.26.2
+- Unreal Engine 4.26.2 - 4.27.0
 
 ## Getting Started
 
