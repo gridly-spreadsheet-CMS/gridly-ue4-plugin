@@ -4,6 +4,7 @@
 
 #include "AssetTypeActions_CSVAssetBase.h"
 #include "GridlyDataTable.h"
+#include "Interfaces/IHttpRequest.h"
 
 class FAssetTypeActions_GridlyDataTable : public FAssetTypeActions_CSVAssetBase
 {
@@ -27,5 +28,6 @@ private:
 	void ExportToGridly(UGridlyDataTable* DataTable);
 	void AddToolbarButton(FToolBarBuilder& Builder);
 
+	TQueue<TSharedPtr<IHttpRequest, ESPMode::ThreadSafe>> ExportRequestQueue;
 	static TMap<uint32, TSharedPtr<FScopedSlowTask, ESPMode::ThreadSafe>> ImportSlowTasks;
 };

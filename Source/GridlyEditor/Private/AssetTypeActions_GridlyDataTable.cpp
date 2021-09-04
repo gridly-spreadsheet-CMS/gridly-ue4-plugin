@@ -313,6 +313,37 @@ void FAssetTypeActions_GridlyDataTable::ImportFromGridly(UGridlyDataTable* DataT
 	Task->Activate();
 }
 
+bool CreateExportRequest(const UGridlyDataTable* GridlyDataTable,
+	const size_t StartIndex, TSharedPtr<IHttpRequest, ESPMode::ThreadSafe>& ExportRequest)
+{
+	FString JsonString;
+	if (FGridlyExporter::ConvertToJson(GridlyDataTable, JsonString, StartIndex,
+		GetMutableDefault<UGridlyGameSettings>()->ExportMaxRecordsPerRequest))
+	{
+		const UGridlyGameSettings* GameSettings = GetMutableDefault<UGridlyGameSettings>();
+		const FString ApiKey = GameSettings->ExportApiKey;
+		const FString ViewId = GridlyDataTable->ViewId;
+
+		FStringFormatNamedArguments Args;
+		Args.Add(TEXT("ViewId"), *ViewId);
+		const FString Url = FString::Format(TEXT("https://api.gridly.com/v1/views/{ViewId}/records"), Args);
+
+		const auto HttpRequest = FHttpModule::Get().CreateRequest();
+		HttpRequest->SetHeader(TEXT("Accept"), TEXT("application/json"));
+		HttpRequest->SetHeader(TEXT("Content-Type"), TEXT("application/json"));
+		HttpRequest->SetHeader(TEXT("Authorization"), FString::Printf(TEXT("ApiKey %s"), *ApiKey));
+		HttpRequest->SetContentAsString(JsonString);
+		HttpRequest->SetVerb(TEXT("POST"));
+		HttpRequest->SetURL(Url);
+
+		ExportRequest = HttpRequest;
+
+		return true;
+	}
+
+	return false;
+}
+
 void FAssetTypeActions_GridlyDataTable::ExportToGridly(UGridlyDataTable* DataTable)
 {
 	const FString ConfirmMessage = FString::Printf(
@@ -328,40 +359,34 @@ void FAssetTypeActions_GridlyDataTable::ExportToGridly(UGridlyDataTable* DataTab
 	UGridlyDataTable* GridlyDataTable = Cast<UGridlyDataTable>(DataTable);
 	check(GridlyDataTable);
 
-	TSharedPtr<FScopedSlowTask, ESPMode::Fast> ExportDataTableToGridlySlowTask = MakeShareable(new FScopedSlowTask(1.f,
+	TSharedPtr<FScopedSlowTask, ESPMode::Fast> ExportDataTableToGridlySlowTask = MakeShareable(new FScopedSlowTask(
+		1.f,
 		LOCTEXT("ExportGridlyDataTableSlowTask", "Exporting data table to Gridly")));
 
-	ExportDataTableToGridlySlowTask->MakeDialog();
-
-	FString JsonString;
-	if (FGridlyExporter::ConvertToJson(DataTable, JsonString))
+	size_t TotalRequests = 0;
+	size_t StartIndex = 0;
+	TSharedPtr<IHttpRequest, ESPMode::ThreadSafe> HttpRequest;
+	while (CreateExportRequest(GridlyDataTable, StartIndex, HttpRequest))
 	{
-		UGridlyGameSettings* GameSettings = GetMutableDefault<UGridlyGameSettings>();
-		const FString ApiKey = GameSettings->ExportApiKey;
-		const FString ViewId = DataTable->ViewId;
-
-		FStringFormatNamedArguments Args;
-		Args.Add(TEXT("ViewId"), *ViewId);
-		const FString Url = FString::Format(TEXT("https://api.gridly.com/v1/views/{ViewId}/records"), Args);
-
-		auto HttpRequest = FHttpModule::Get().CreateRequest();
-		HttpRequest->SetHeader(TEXT("Accept"), TEXT("application/json"));
-		HttpRequest->SetHeader(TEXT("Content-Type"), TEXT("application/json"));
-		HttpRequest->SetHeader(TEXT("Authorization"), FString::Printf(TEXT("ApiKey %s"), *ApiKey));
-		HttpRequest->SetContentAsString(JsonString);
-		HttpRequest->SetVerb(TEXT("POST"));
-		HttpRequest->SetURL(Url);
-
-		ExportDataTableToGridlySlowTask->EnterProgressFrame(.5f);
-
 		HttpRequest->OnProcessRequestComplete().
-		             BindLambda([ExportDataTableToGridlySlowTask](FHttpRequestPtr HttpRequest,
+		             BindLambda([this, ExportDataTableToGridlySlowTask](FHttpRequestPtr HttpRequest,
 			             FHttpResponsePtr HttpResponse, bool bSuccess) mutable
 			             {
-				             if (bSuccess)
+				             if (bSuccess
+				                 && (HttpResponse->GetResponseCode() == EHttpResponseCodes::Ok ||
+				                     HttpResponse->GetResponseCode() == EHttpResponseCodes::Created))
 				             {
-					             ExportDataTableToGridlySlowTask->EnterProgressFrame(.5f);
-					             ExportDataTableToGridlySlowTask.Reset();
+					             ExportDataTableToGridlySlowTask->EnterProgressFrame(1.f);
+
+					             TSharedPtr<IHttpRequest, ESPMode::ThreadSafe> NextHttpRequest;
+					             if (this->ExportRequestQueue.Dequeue(NextHttpRequest))
+					             {
+						             NextHttpRequest->ProcessRequest();
+					             }
+					             else
+					             {
+						             ExportDataTableToGridlySlowTask.Reset();
+					             }
 				             }
 				             else
 				             {
@@ -373,8 +398,20 @@ void FAssetTypeActions_GridlyDataTable::ExportToGridly(UGridlyDataTable* DataTab
 					             FMessageDialog::Open(EAppMsgType::Ok, FText::FromString(ErrorReason));
 				             }
 			             });
+		ExportRequestQueue.Enqueue(HttpRequest);
+		StartIndex += GetMutableDefault<UGridlyGameSettings>()->ExportMaxRecordsPerRequest;
+		TotalRequests++;
+	}
 
+	if (ExportRequestQueue.Dequeue(HttpRequest))
+	{
+		ExportDataTableToGridlySlowTask->TotalAmountOfWork = static_cast<float>(TotalRequests);
+		ExportDataTableToGridlySlowTask->MakeDialog();
 		HttpRequest->ProcessRequest();
+	}
+	else
+	{
+		ExportDataTableToGridlySlowTask.Reset();
 	}
 }
 
