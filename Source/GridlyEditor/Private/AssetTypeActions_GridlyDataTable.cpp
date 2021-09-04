@@ -8,7 +8,6 @@
 #include "GridlyEditor.h"
 #include "GridlyExporter.h"
 #include "GridlyGameSettings.h"
-#include "GridlyLocalizedTextConverter.h"
 #include "GridlyStyle.h"
 #include "GridlyTableRow.h"
 #include "GridlyTask_ImportDataTableFromGridly.h"
