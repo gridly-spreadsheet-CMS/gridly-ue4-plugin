@@ -13,9 +13,6 @@ bool FGridlyLocalizedText::GetAllTextAsPolyglotTextDatas(ULocalizationTarget* Lo
 	TArray<FPolyglotTextData>& OutPolyglotTextDatas)
 {
 	const FString ConfigFilePath = LocalizationConfigurationScript::GetGatherTextConfigPath(LocalizationTarget);
-
-	FInternationalization& I18N = FInternationalization::Get();
-
 	const FString SectionName = TEXT("CommonSettings");
 
 	// Get native culture.
