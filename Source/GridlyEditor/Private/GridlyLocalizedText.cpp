@@ -12,11 +12,11 @@
 bool FGridlyLocalizedText::GetAllTextAsPolyglotTextDatas(ULocalizationTarget* LocalizationTarget,
 	TArray<FPolyglotTextData>& OutPolyglotTextDatas)
 {
-	const FString ConfigFilePath = LocalizationConfigurationScript::GetRegenerateResourcesConfigPath(LocalizationTarget);
+	const FString ConfigFilePath = LocalizationConfigurationScript::GetGatherTextConfigPath(LocalizationTarget);
 
 	FInternationalization& I18N = FInternationalization::Get();
 
-	const FString SectionName = TEXT("RegenerateResources");
+	const FString SectionName = TEXT("CommonSettings");
 
 	// Get native culture.
 	const int NativeCultureIndex = LocalizationTarget->Settings.NativeCultureIndex;
@@ -51,14 +51,6 @@ bool FGridlyLocalizedText::GetAllTextAsPolyglotTextDatas(ULocalizationTarget* Lo
 	if (!GConfig->GetString(*SectionName, TEXT("ArchiveName"), ArchiveName, ConfigFilePath))
 	{
 		UE_LOG(LogGridlyEditor, Error, TEXT("No archive name specified."));
-		return false;
-	}
-
-	// Get resource name.
-	FString ResourceName;
-	if (!GConfig->GetString(*SectionName, TEXT("ResourceName"), ResourceName, ConfigFilePath))
-	{
-		UE_LOG(LogGridlyEditor, Error, TEXT("No resource name specified."));
 		return false;
 	}
 
