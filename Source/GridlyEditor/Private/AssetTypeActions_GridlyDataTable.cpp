@@ -269,11 +269,11 @@ void FAssetTypeActions_GridlyDataTable::ImportFromGridly(UGridlyDataTable* DataT
 	{
 		return;
 	}
-	
+
 	UGridlyDataTable* GridlyDataTable = Cast<UGridlyDataTable>(DataTable);
 	check(GridlyDataTable);
 
-	TSharedPtr<FScopedSlowTask, ESPMode::ThreadSafe> ImportDataTableFromGridlySlowTask = MakeShareable(new FScopedSlowTask(1.f,
+	const TSharedPtr<FScopedSlowTask, ESPMode::ThreadSafe> ImportDataTableFromGridlySlowTask = MakeShareable(new FScopedSlowTask(1.f,
 		LOCTEXT("ImportGridlyDataTableSlowTask", "Importing data table from Gridly")));
 	auto& SlowTask = ImportSlowTasks.Add(DataTable->GetUniqueID(), ImportDataTableFromGridlySlowTask);
 
@@ -282,14 +282,18 @@ void FAssetTypeActions_GridlyDataTable::ImportFromGridly(UGridlyDataTable* DataT
 	UGridlyTask_ImportDataTableFromGridly* Task =
 		UGridlyTask_ImportDataTableFromGridly::ImportDataTableFromGridly(nullptr, GridlyDataTable);
 
-	SlowTask->EnterProgressFrame(.5f);
-
 	FDataTableEditorUtils::BroadcastPreChange(GridlyDataTable, FDataTableEditorUtils::EDataTableChangeInfo::RowList);
+
+	Task->OnProgressDelegate.BindLambda(
+		[GridlyDataTable, &SlowTask](const TArray<FGridlyTableRow>& GridlyTableRows, float Progress) mutable
+		{
+			const float Delta = Progress - SlowTask->CompletedWork;
+			SlowTask->EnterProgressFrame(Delta);
+		});
 
 	Task->OnSuccessDelegate.BindLambda(
 		[GridlyDataTable, &SlowTask](const TArray<FGridlyTableRow>& GridlyTableRows) mutable
 		{
-			SlowTask->EnterProgressFrame(.5f);
 			SlowTask.Reset();
 			FDataTableEditorUtils::BroadcastPostChange(GridlyDataTable, FDataTableEditorUtils::EDataTableChangeInfo::RowList);
 		});
