@@ -151,7 +151,7 @@ void UGridlyTask_DownloadLocalizedTexts::OnProcessRequestComplete(FHttpRequestPt
 			if (OnProgressDelegate.IsBound())
 				OnProgressDelegate.Execute(PolyglotTextDatas, EstimatedProgress);
 
-			if (PolyglotTextDatas.Num() < TotalCount)
+			if ((CurrentOffset + Limit) < TotalCount)
 			{
 				RequestPage(CurrentViewIdIndex, CurrentOffset + Limit);
 			}

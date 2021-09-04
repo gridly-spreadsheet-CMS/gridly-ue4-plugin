@@ -183,7 +183,7 @@ void UGridlyTask_ImportDataTableFromGridly::OnProcessRequestComplete(FHttpReques
 			if (OnProgressDelegate.IsBound())
 				OnProgressDelegate.Execute(GridlyTableRows, EstimatedProgress);
 
-			if (GridlyTableRows.Num() < TotalCount)
+			if ((CurrentOffset + Limit) < TotalCount)
 			{
 				RequestPage(CurrentViewIdIndex, CurrentOffset + Limit);
 			}
