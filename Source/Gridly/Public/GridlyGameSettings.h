@@ -18,6 +18,10 @@ public:
 	/** The view IDs to fetch from Gridly. Record IDs will be combined. Duplicate keys will be ignored */
 	UPROPERTY(Category = "Gridly|Import Settings", BlueprintReadOnly, EditAnywhere, Config)
 	TArray<FString> ImportFromViewIds;
+	
+	/** The max amount of records to import on each request. This should normally be set to the API limit */
+	UPROPERTY(Category = "Gridly|Import Settings|Advanced", BlueprintReadOnly, EditAnywhere, Config)
+	int ImportMaxRecordsPerRequest = 1000;
 
 	/** The API key can be retrieved from your Gridly dashboard. Make sure you have write access */
 	UPROPERTY(Category = "Gridly|Export Settings", BlueprintReadOnly, EditAnywhere, Transient)
@@ -26,6 +30,10 @@ public:
 	/** The view ID to export the source strings to */
 	UPROPERTY(Category = "Gridly|Export Settings", BlueprintReadOnly, EditAnywhere, Transient)
 	FString ExportViewId;
+	
+	/** The max amount of records to export on each request. This should normally be set to the API limit */
+	UPROPERTY(Category = "Gridly|Export Settings|Advanced", BlueprintReadOnly, EditAnywhere, Config)
+	int ExportMaxRecordsPerRequest = 1000;
 
 	/** Use combined comma-separated "{namespace},{key}" as record ID. WARNING! This should not be changed after a project has already been exported */
 	UPROPERTY(Category = "Gridly|Options", BlueprintReadOnly, EditAnywhere, Config)
