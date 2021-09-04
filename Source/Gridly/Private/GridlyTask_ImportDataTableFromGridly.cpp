@@ -21,9 +21,9 @@ UGridlyTask_ImportDataTableFromGridly::UGridlyTask_ImportDataTableFromGridly()
 
 void UGridlyTask_ImportDataTableFromGridly::Activate()
 {
-	UGridlyGameSettings* GameSettings = GetMutableDefault<UGridlyGameSettings>();
+	const UGridlyGameSettings* GameSettings = GetMutableDefault<UGridlyGameSettings>();
 
-	Limit = 1000; // TODO Change this default
+	Limit = GameSettings->ImportMaxRecordsPerRequest;
 	TotalCount = 0;
 
 	ViewIds.Reset();
@@ -47,7 +47,8 @@ void UGridlyTask_ImportDataTableFromGridly::RequestPage(const int ViewIdIndex, c
 		const FGridlyResult FailResult = FGridlyResult{"Unable to import data table: no view IDs were specified"};
 		UE_LOG(LogGridly, Error, TEXT("%s"), *FailResult.Message);
 		OnFail.Broadcast(GridlyTableRows, 1.f, FailResult);
-		OnFailDelegate.ExecuteIfBound(GridlyTableRows, FailResult);
+		if (OnFailDelegate.IsBound())
+			OnFailDelegate.Execute(GridlyTableRows, FailResult);
 		return;
 	}
 
@@ -55,7 +56,7 @@ void UGridlyTask_ImportDataTableFromGridly::RequestPage(const int ViewIdIndex, c
 	{
 		const FString& ViewId = ViewIds[ViewIdIndex];
 
-		UGridlyGameSettings* GameSettings = GetMutableDefault<UGridlyGameSettings>();
+		const UGridlyGameSettings* GameSettings = GetMutableDefault<UGridlyGameSettings>();
 		const FString ApiKey = GameSettings->ImportApiKey;
 
 		const FString PaginationSettings = FGenericPlatformHttp::UrlEncode(FString::Printf(TEXT("{\"offset\":%d,\"limit\":%d}"),
@@ -79,7 +80,8 @@ void UGridlyTask_ImportDataTableFromGridly::RequestPage(const int ViewIdIndex, c
 		HttpRequest->OnProcessRequestComplete().BindUObject(this, &UGridlyTask_ImportDataTableFromGridly::OnProcessRequestComplete);
 
 		OnProgress.Broadcast(GridlyTableRows, .1f, FGridlyResult::Success);
-		OnProgressDelegate.ExecuteIfBound(GridlyTableRows, .1f);
+		if (OnProgressDelegate.IsBound())
+			OnProgressDelegate.Execute(GridlyTableRows, .1f);
 
 		// Throttles number of requests by sleeping between each
 
@@ -106,7 +108,7 @@ void UGridlyTask_ImportDataTableFromGridly::RequestPage(const int ViewIdIndex, c
 
 		for (int i = 0; i < GridlyTableRows.Num(); i++)
 		{
-			TSharedPtr<FJsonObject> JsonObject = MakeShareable(new FJsonObject);
+			const TSharedPtr<FJsonObject> JsonObject = MakeShareable(new FJsonObject);
 			JsonObject->SetStringField("name", GridlyTableRows[i].Id);
 
 			for (int j = 0; j < GridlyTableRows[i].Cells.Num(); j++)
@@ -128,7 +130,8 @@ void UGridlyTask_ImportDataTableFromGridly::RequestPage(const int ViewIdIndex, c
 		{
 			UE_LOG(LogGridly, Log, TEXT("Imported data table from Gridly: %s"), *GridlyDataTable->GetName());
 			OnSuccess.Broadcast(GridlyTableRows, 1.f, FGridlyResult::Success);
-			OnSuccessDelegate.ExecuteIfBound(GridlyTableRows);
+			if (OnSuccessDelegate.IsBound())
+				OnSuccessDelegate.Execute(GridlyTableRows);
 		}
 		else
 		{
@@ -139,7 +142,8 @@ void UGridlyTask_ImportDataTableFromGridly::RequestPage(const int ViewIdIndex, c
 
 			const FGridlyResult FailResult = FGridlyResult{"Failed to parse downloaded content"};
 			OnFail.Broadcast(GridlyTableRows, 1.f, FailResult);
-			OnFailDelegate.ExecuteIfBound(GridlyTableRows, FailResult);
+			if (OnFailDelegate.IsBound())
+				OnFailDelegate.Execute(GridlyTableRows, FailResult);
 		}
 	}
 }
@@ -170,12 +174,14 @@ void UGridlyTask_ImportDataTableFromGridly::OnProcessRequestComplete(FHttpReques
 
 			const int ViewIdTotalCount = FCString::Atoi(*HttpResponsePtr->GetHeader("X-Total-Count"));
 			TotalCount += CurrentOffset == 0 ? ViewIdTotalCount : 0;
-			const float EstimatedProgressViewIds = static_cast<float>(CurrentViewIdIndex) / FMath::Max(1, ViewIds.Num());
-			const float EstimatedProgressPagination = GridlyTableRows.Num() / TotalCount;
+			const float EstimatedProgressViewIds =
+				static_cast<float>(CurrentViewIdIndex) / static_cast<float>(FMath::Max(1, ViewIds.Num()));
+			const float EstimatedProgressPagination = static_cast<float>(GridlyTableRows.Num()) / static_cast<float>(TotalCount);
 			const float EstimatedProgress = (EstimatedProgressViewIds + EstimatedProgressPagination) / 2.f;
 
 			OnProgress.Broadcast(GridlyTableRows, EstimatedProgress, FGridlyResult::Success);
-			OnProgressDelegate.ExecuteIfBound(GridlyTableRows, EstimatedProgress);
+			if (OnProgressDelegate.IsBound())
+				OnProgressDelegate.Execute(GridlyTableRows, EstimatedProgress);
 
 			if (GridlyTableRows.Num() < TotalCount)
 			{
@@ -190,14 +196,16 @@ void UGridlyTask_ImportDataTableFromGridly::OnProcessRequestComplete(FHttpReques
 		{
 			const FGridlyResult FailResult = FGridlyResult{"Failed to parse downloaded content"};
 			OnFail.Broadcast(GridlyTableRows, 1.f, FailResult);
-			OnFailDelegate.ExecuteIfBound(GridlyTableRows, FailResult);
+			if (OnFailDelegate.IsBound())
+				OnFailDelegate.Execute(GridlyTableRows, FailResult);
 		}
 	}
 	else
 	{
 		const FGridlyResult FailResult = FGridlyResult{"Failed to connect to Gridly"};
 		OnFail.Broadcast(GridlyTableRows, 1.f, FailResult);
-		OnFailDelegate.ExecuteIfBound(GridlyTableRows, FailResult);
+		if (OnFailDelegate.IsBound())
+			OnFailDelegate.Execute(GridlyTableRows, FailResult);
 	}
 }
 

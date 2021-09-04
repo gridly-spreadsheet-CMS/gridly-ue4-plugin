@@ -21,13 +21,13 @@ UGridlyTask_DownloadLocalizedTexts::UGridlyTask_DownloadLocalizedTexts()
 
 void UGridlyTask_DownloadLocalizedTexts::Activate()
 {
-	UGridlyGameSettings* GameSettings = GetMutableDefault<UGridlyGameSettings>();
+	const UGridlyGameSettings* GameSettings = GetMutableDefault<UGridlyGameSettings>();
 
-	Limit = 1000; // TODO Change this default
+	Limit = GameSettings->ImportMaxRecordsPerRequest;
 	TotalCount = 0;
 
 	ViewIds.Reset();
-	for (int i = 0; i < GameSettings->ImportFromViewIds.Num();i++)
+	for (int i = 0; i < GameSettings->ImportFromViewIds.Num(); i++)
 	{
 		if (!GameSettings->ImportFromViewIds[i].IsEmpty())
 		{
@@ -47,18 +47,19 @@ void UGridlyTask_DownloadLocalizedTexts::RequestPage(const int ViewIdIndex, cons
 
 	if (ViewIds.Num() == 0)
 	{
-		const FGridlyResult FailResult = FGridlyResult{"Unable to import texts: no view IDs were specified" };
+		const FGridlyResult FailResult = FGridlyResult{"Unable to import texts: no view IDs were specified"};
 		UE_LOG(LogGridly, Error, TEXT("%s"), *FailResult.Message);
 		OnFail.Broadcast(PolyglotTextDatas, 1.f, FailResult);
-		OnFailDelegate.ExecuteIfBound(PolyglotTextDatas, FailResult);
+		if (OnFailDelegate.IsBound())
+			OnFailDelegate.Execute(PolyglotTextDatas, FailResult);
 		return;
 	}
 
 	if (ViewIdIndex < ViewIds.Num())
 	{
 		const FString& ViewId = ViewIds[ViewIdIndex];
-		
-		UGridlyGameSettings* GameSettings = GetMutableDefault<UGridlyGameSettings>();
+
+		const UGridlyGameSettings* GameSettings = GetMutableDefault<UGridlyGameSettings>();
 		const FString ApiKey = GameSettings->ImportApiKey;
 
 		const FString PaginationSettings =
@@ -81,7 +82,8 @@ void UGridlyTask_DownloadLocalizedTexts::RequestPage(const int ViewIdIndex, cons
 		HttpRequest->OnProcessRequestComplete().BindUObject(this, &UGridlyTask_DownloadLocalizedTexts::OnProcessRequestComplete);
 
 		OnProgress.Broadcast(PolyglotTextDatas, .1f, FGridlyResult::Success);
-		OnProgressDelegate.ExecuteIfBound(PolyglotTextDatas, .1f);
+		if (OnProgressDelegate.IsBound())
+			OnProgressDelegate.Execute(PolyglotTextDatas, .1f);
 
 		// Throttles number of requests by sleeping between each
 
@@ -105,7 +107,8 @@ void UGridlyTask_DownloadLocalizedTexts::RequestPage(const int ViewIdIndex, cons
 	else
 	{
 		OnSuccess.Broadcast(PolyglotTextDatas, 1.f, FGridlyResult::Success);
-		OnSuccessDelegate.ExecuteIfBound(PolyglotTextDatas);
+		if (OnSuccessDelegate.IsBound())
+			OnSuccessDelegate.Execute(PolyglotTextDatas);
 	}
 }
 
@@ -139,12 +142,14 @@ void UGridlyTask_DownloadLocalizedTexts::OnProcessRequestComplete(FHttpRequestPt
 
 			const int ViewIdTotalCount = FCString::Atoi(*HttpResponsePtr->GetHeader("X-Total-Count"));
 			TotalCount += CurrentOffset == 0 ? ViewIdTotalCount : 0;
-			const float EstimatedProgressViewIds = static_cast<float>(CurrentViewIdIndex) / FMath::Max(1, ViewIds.Num());
-			const float EstimatedProgressPagination = PolyglotTextDatas.Num() / TotalCount;
+			const float EstimatedProgressViewIds =
+				static_cast<float>(CurrentViewIdIndex) / static_cast<float>(FMath::Max(1, ViewIds.Num()));
+			const float EstimatedProgressPagination = static_cast<float>(PolyglotTextDatas.Num()) / static_cast<float>(TotalCount);
 			const float EstimatedProgress = (EstimatedProgressViewIds + EstimatedProgressPagination) / 2.f;
-
+			
 			OnProgress.Broadcast(PolyglotTextDatas, EstimatedProgress, FGridlyResult::Success);
-			OnProgressDelegate.ExecuteIfBound(PolyglotTextDatas, EstimatedProgress);
+			if (OnProgressDelegate.IsBound())
+				OnProgressDelegate.Execute(PolyglotTextDatas, EstimatedProgress);
 
 			if (PolyglotTextDatas.Num() < TotalCount)
 			{
@@ -159,20 +164,22 @@ void UGridlyTask_DownloadLocalizedTexts::OnProcessRequestComplete(FHttpRequestPt
 		{
 			const FGridlyResult FailResult = FGridlyResult{"Failed to parse downloaded content"};
 			OnFail.Broadcast(PolyglotTextDatas, 1.f, FailResult);
-			OnFailDelegate.ExecuteIfBound(PolyglotTextDatas, FailResult);
+			if (OnFailDelegate.IsBound())
+				OnFailDelegate.Execute(PolyglotTextDatas, FailResult);
 		}
 	}
 	else
 	{
 		const FGridlyResult FailResult = FGridlyResult{"Failed to connect to Gridly"};
 		OnFail.Broadcast(PolyglotTextDatas, 1.f, FailResult);
-		OnFailDelegate.ExecuteIfBound(PolyglotTextDatas, FailResult);
+		if (OnFailDelegate.IsBound())
+			OnFailDelegate.Execute(PolyglotTextDatas, FailResult);
 	}
 }
 
 UGridlyTask_DownloadLocalizedTexts* UGridlyTask_DownloadLocalizedTexts::DownloadLocalizedTexts(const UObject* WorldContextObject)
 {
-	auto DownloadLocalizedTexts = NewObject<UGridlyTask_DownloadLocalizedTexts>();
+	const auto DownloadLocalizedTexts = NewObject<UGridlyTask_DownloadLocalizedTexts>();
 	DownloadLocalizedTexts->WorldContextObject = WorldContextObject;
 	return DownloadLocalizedTexts;
 }
