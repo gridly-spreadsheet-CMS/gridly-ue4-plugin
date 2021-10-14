@@ -105,7 +105,7 @@ bool FGridlyExporter::ConvertToJson(const TArray<FPolyglotTextData>& PolyglotTex
 					else
 					{
 						Path.Append(TEXT("StringTables/"));
-						Path.Append(Namespace);
+						Path.Append(FPaths::GetBaseFilename(ItemContext->SourceLocation));
 					}
 
 					RowJsonObject->SetStringField("path", Path);
