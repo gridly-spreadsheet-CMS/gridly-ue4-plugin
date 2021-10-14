@@ -1,4 +1,4 @@
-﻿// Copyright © 2020 LocalizeDirect AB
+// Copyright © 2020 LocalizeDirect AB
 
 #pragma once
 

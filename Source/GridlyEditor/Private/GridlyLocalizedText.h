@@ -1,4 +1,4 @@
-﻿// Copyright © 2020 LocalizeDirect AB
+// Copyright © 2020 LocalizeDirect AB
 
 #pragma once
 
@@ -6,9 +6,10 @@
 
 #include "LocalizationTargetTypes.h"
 
+class FLocTextHelper;
 class FGridlyLocalizedText
 {
 public:
 	static bool GetAllTextAsPolyglotTextDatas(ULocalizationTarget* LocalizationTarget,
-		TArray<FPolyglotTextData>& OutPolyglotTextDatas);
+		TArray<FPolyglotTextData>& OutPolyglotTextDatas, TSharedPtr<FLocTextHelper>& LocTextHelper);
 };
