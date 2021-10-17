@@ -95,11 +95,6 @@ public:
 		meta = (EditCondition = "bExportDirectlyFromLocTarget"))
 	TMap<FString, FGridlyColumnInfo> MetadataMapping;
 
-	/** When set, path is prefixed with text source type (StringTables/ or Code for now) */
-	UPROPERTY(Category = "Gridly|Options", BlueprintReadOnly, EditAnywhere, Config,
-		meta = (EditCondition = "!bAlsoExportNamespaceColumn"))
-	bool bExportTextTypeAsPath = false;
-
 public:
 	UGridlyGameSettings();
 
