@@ -86,13 +86,21 @@ public:
 		meta = (EditCondition="bUseCustomCultureMapping"))
 	TMap<FString, FString> CustomCultureMapping;
 
-	/** When set, Manifest data will be directly exported to Gridly (usefull when Text metadata needs to be exported) */
+	/** When set, will export context (SourceLocation) */
 	UPROPERTY(Category = "Gridly|Options", BlueprintReadOnly, EditAnywhere, Config)
-	bool bExportDirectlyFromLocTarget = false;
+	bool bExportContext = false;
+
+	/** Column name of context (SourceLocation) on Gridly */
+	UPROPERTY(Category = "Gridly|Options", BlueprintReadOnly, EditAnywhere, Config,
+		meta = (EditCondition = "bExportContext"))
+	FString ContextColumnId = "src_context";
+
+	/** When set, metadata will also be exported to Gridly */
+	UPROPERTY(Category = "Gridly|Options", BlueprintReadOnly, EditAnywhere, Config)
+	bool bExportMetadata = false;
 
 	/** This will remap metadata to specific Gridly columns during the export */
-	UPROPERTY(Category = "Gridly|Options", BlueprintReadOnly, EditAnywhere, Config,
-		meta = (EditCondition = "bExportDirectlyFromLocTarget"))
+	UPROPERTY(Category = "Gridly|Options", BlueprintReadOnly, EditAnywhere, Config, meta = (EditCondition = "bExportMetadata"))
 	TMap<FString, FGridlyColumnInfo> MetadataMapping;
 
 public:

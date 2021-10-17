@@ -78,20 +78,20 @@ bool FGridlyExporter::ConvertToJson(const TArray<FPolyglotTextData>& PolyglotTex
 				CellsJsonArray.Add(MakeShareable(new FJsonValueObject(CellJsonObject)));
 			}
 
-			// Add metadata
+			// Add context
 
-			// if we find SourceLocation in the MetadataMapping, add the info to the json
-			const FString SourceLocKey(TEXT("SourceLocation"));
-			const FGridlyColumnInfo* GridlyColumnId = GameSettings->MetadataMapping.Find(SourceLocKey);
-			if (GridlyColumnId && ItemContext)
+			if (ItemContext && GameSettings->bExportContext)
 			{
 				TSharedPtr<FJsonObject> CellJsonObject = MakeShareable(new FJsonObject);
-				CellJsonObject->SetStringField("columnId", *GridlyColumnId->Name);
-				CellJsonObject->SetStringField("value", ItemContext->SourceLocation.Replace(TEXT(" - line "), TEXT(":"), ESearchCase::CaseSensitive)); // see PortableObjectPipeline::ConvertSrcLocationToPORef
+				CellJsonObject->SetStringField("columnId", *GameSettings->ContextColumnId);
+				CellJsonObject->SetStringField("value",
+					ItemContext->SourceLocation.Replace(TEXT(" - line "), TEXT(":"), ESearchCase::CaseSensitive));
 				CellsJsonArray.Add(MakeShareable(new FJsonValueObject(CellJsonObject)));
 			}
 
-			if (ItemContext && ItemContext->InfoMetadataObj.IsValid())
+			// Add metadata
+
+			if (ItemContext && GameSettings->bExportMetadata && ItemContext->InfoMetadataObj.IsValid())
 			{
 				for (const auto& InfoMetaDataPair : ItemContext->InfoMetadataObj->Values)
 				{
@@ -101,19 +101,22 @@ bool FGridlyExporter::ConvertToJson(const TArray<FPolyglotTextData>& PolyglotTex
 						TSharedPtr<FJsonObject> CellJsonObject = MakeShareable(new FJsonObject);
 						CellJsonObject->SetStringField("columnId", *GridlyColumnInfo->Name);
 
-						const TSharedPtr<FLocMetadataValue> Value = InfoMetaDataPair.Value; // in PO Pipeline string is cleaned with PortableObjectPipeline::ConditionArchiveStrForPO 
+						const TSharedPtr<FLocMetadataValue> Value = InfoMetaDataPair.Value;
 
 						switch (GridlyColumnInfo->DataType)
 						{
-						case EGridlyColumnDataType::String:
-						{
-							CellJsonObject->SetStringField("value", Value->ToString());
-						} break;
-						case EGridlyColumnDataType::Number:
-						{
-							CellJsonObject->SetNumberField("value", FCString::Atoi(*Value->ToString()));
-						} break;
-						default: break;
+							case EGridlyColumnDataType::String:
+							{
+								CellJsonObject->SetStringField("value", Value->ToString());
+							}
+							break;
+							case EGridlyColumnDataType::Number:
+							{
+								CellJsonObject->SetNumberField("value", FCString::Atoi(*Value->ToString()));
+							}
+							break;
+							default:
+								break;
 						}
 
 						CellsJsonArray.Add(MakeShareable(new FJsonValueObject(CellJsonObject)));
