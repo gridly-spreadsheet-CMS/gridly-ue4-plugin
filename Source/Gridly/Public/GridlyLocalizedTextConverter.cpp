@@ -36,16 +36,7 @@ bool FGridlyLocalizedTextConverter::TableRowsToPolyglotTextDatas(const TArray<FG
 
 			if (!bUsePathAsNamespace && GridlyTableCell.ColumnId == GameSettings->NamespaceColumnId)
 			{
-				// namespace can be combined with Key, if it's the case we just take everything before the coma
-				int32 SepIndex = INDEX_NONE;
-				if (GridlyTableCell.Value.FindChar(',', SepIndex))
-				{
-					Namespace = GridlyTableCell.Value.Left(SepIndex);
-				}
-				else
-				{
-					Namespace = GridlyTableCell.Value;
-				}
+				Namespace = GridlyTableCell.Value;
 				continue;
 			}
 
