@@ -1,3 +1,3 @@
-﻿// Copyright © 2020 LocalizeDirect AB
+﻿// Copyright (c) 2021 LocalizeDirect AB
 
 #include "GridlyDataTable.h"
