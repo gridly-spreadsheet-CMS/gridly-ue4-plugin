@@ -1,4 +1,4 @@
-﻿#include "GridlyExporter.h"
+#include "GridlyExporter.h"
 
 #include "GridlyCultureConverter.h"
 #include "GridlyDataTableImporterJSON.h"
@@ -6,9 +6,10 @@
 #include "Dom/JsonObject.h"
 #include "Dom/JsonValue.h"
 #include "Internationalization/PolyglotTextData.h"
+#include "LocTextHelper.h"
 
 bool FGridlyExporter::ConvertToJson(const TArray<FPolyglotTextData>& PolyglotTextDatas,
-	bool bIncludeTargetTranslations, FString& OutJsonString)
+	bool bIncludeTargetTranslations, const TSharedPtr<FLocTextHelper>& LocTextHelperPtr, FString& OutJsonString)
 {
 	UGridlyGameSettings* GameSettings = GetMutableDefault<UGridlyGameSettings>();
 	const TArray<FString> TargetCultures = FGridlyCultureConverter::GetTargetCultures();
@@ -24,8 +25,15 @@ bool FGridlyExporter::ConvertToJson(const TArray<FPolyglotTextData>& PolyglotTex
 		TSharedPtr<FJsonObject> RowJsonObject = MakeShareable(new FJsonObject);
 		TArray<TSharedPtr<FJsonValue>> CellsJsonArray;
 
-		const FString Key = PolyglotTextDatas[i].GetKey();
-		const FString Namespace = PolyglotTextDatas[i].GetNamespace();
+		const FString& Key = PolyglotTextDatas[i].GetKey();
+		const FString& Namespace = PolyglotTextDatas[i].GetNamespace();
+
+		const FManifestContext* ItemContext = nullptr;
+		if (LocTextHelperPtr.IsValid())
+		{
+			TSharedPtr<FManifestEntry> ManifestEntry = LocTextHelperPtr->FindSourceText(Namespace, Key);
+			ItemContext = ManifestEntry ? ManifestEntry->FindContextByKey(Key) : nullptr;
+		}
 
 		// Set record id
 
@@ -68,6 +76,52 @@ bool FGridlyExporter::ConvertToJson(const TArray<FPolyglotTextData>& PolyglotTex
 				CellJsonObject->SetStringField("columnId", GameSettings->SourceLanguageColumnIdPrefix + GridlyCulture);
 				CellJsonObject->SetStringField("value", NativeString);
 				CellsJsonArray.Add(MakeShareable(new FJsonValueObject(CellJsonObject)));
+			}
+
+			// Add context
+
+			if (ItemContext && GameSettings->bExportContext)
+			{
+				TSharedPtr<FJsonObject> CellJsonObject = MakeShareable(new FJsonObject);
+				CellJsonObject->SetStringField("columnId", *GameSettings->ContextColumnId);
+				CellJsonObject->SetStringField("value",
+					ItemContext->SourceLocation.Replace(TEXT(" - line "), TEXT(":"), ESearchCase::CaseSensitive));
+				CellsJsonArray.Add(MakeShareable(new FJsonValueObject(CellJsonObject)));
+			}
+
+			// Add metadata
+
+			if (ItemContext && GameSettings->bExportMetadata && ItemContext->InfoMetadataObj.IsValid())
+			{
+				for (const auto& InfoMetaDataPair : ItemContext->InfoMetadataObj->Values)
+				{
+					const FString& KeyName = InfoMetaDataPair.Key;
+					if (const FGridlyColumnInfo* GridlyColumnInfo = GameSettings->MetadataMapping.Find(InfoMetaDataPair.Key))
+					{
+						TSharedPtr<FJsonObject> CellJsonObject = MakeShareable(new FJsonObject);
+						CellJsonObject->SetStringField("columnId", *GridlyColumnInfo->Name);
+
+						const TSharedPtr<FLocMetadataValue> Value = InfoMetaDataPair.Value;
+
+						switch (GridlyColumnInfo->DataType)
+						{
+							case EGridlyColumnDataType::String:
+							{
+								CellJsonObject->SetStringField("value", Value->ToString());
+							}
+							break;
+							case EGridlyColumnDataType::Number:
+							{
+								CellJsonObject->SetNumberField("value", FCString::Atoi(*Value->ToString()));
+							}
+							break;
+							default:
+								break;
+						}
+
+						CellsJsonArray.Add(MakeShareable(new FJsonValueObject(CellJsonObject)));
+					}
+				}
 			}
 
 			if (bIncludeTargetTranslations)

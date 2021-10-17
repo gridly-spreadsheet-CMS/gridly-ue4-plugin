@@ -1,8 +1,28 @@
-﻿// Copyright © 2020 LocalizeDirect AB
+// Copyright 2020 LocalizeDirect AB
 
 #pragma once
 
 #include "GridlyGameSettings.generated.h"
+
+UENUM(BlueprintType)
+enum class EGridlyColumnDataType : uint8
+{
+	String,
+	Number
+};
+
+USTRUCT(BlueprintType)
+struct GRIDLY_API FGridlyColumnInfo
+{
+	GENERATED_USTRUCT_BODY()
+
+public:
+	UPROPERTY(EditAnywhere, Category = ColumnInfo)
+	FString Name;
+
+	UPROPERTY(EditAnywhere, Category = ColumnInfo)
+	EGridlyColumnDataType DataType;
+};
 
 UCLASS(BlueprintType, Config = Game, DefaultConfig,
 	AutoExpandCategories=("Gridly|Import Settings", "Gridly|Export Settings", "Gridly|Options"))
@@ -65,6 +85,23 @@ public:
 	UPROPERTY(Category = "Gridly|Options", BlueprintReadOnly, EditAnywhere, Config,
 		meta = (EditCondition="bUseCustomCultureMapping"))
 	TMap<FString, FString> CustomCultureMapping;
+
+	/** When set, will export context (SourceLocation) */
+	UPROPERTY(Category = "Gridly|Options", BlueprintReadOnly, EditAnywhere, Config)
+	bool bExportContext = false;
+
+	/** Column name of context (SourceLocation) on Gridly */
+	UPROPERTY(Category = "Gridly|Options", BlueprintReadOnly, EditAnywhere, Config,
+		meta = (EditCondition = "bExportContext"))
+	FString ContextColumnId = "src_context";
+
+	/** When set, metadata will also be exported to Gridly */
+	UPROPERTY(Category = "Gridly|Options", BlueprintReadOnly, EditAnywhere, Config)
+	bool bExportMetadata = false;
+
+	/** This will remap metadata to specific Gridly columns during the export */
+	UPROPERTY(Category = "Gridly|Options", BlueprintReadOnly, EditAnywhere, Config, meta = (EditCondition = "bExportMetadata"))
+	TMap<FString, FGridlyColumnInfo> MetadataMapping;
 
 public:
 	UGridlyGameSettings();

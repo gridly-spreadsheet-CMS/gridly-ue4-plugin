@@ -1,4 +1,4 @@
-﻿// Copyright © 2020 LocalizeDirect AB
+// Copyright (c) 2021 LocalizeDirect AB
 
 #include "GridlyLocalizationServiceProvider.h"
 
@@ -339,10 +339,10 @@ void FGridlyLocalizationServiceProvider::OnImportCultureForTargetFromGridly(cons
 }
 
 TSharedRef<IHttpRequest, ESPMode::ThreadSafe> CreateExportRequest(const TArray<FPolyglotTextData>& PolyglotTextDatas,
-	bool bIncludeTargetTranslations)
+	const TSharedPtr<FLocTextHelper>& LocTextHelperPtr, bool bIncludeTargetTranslations)
 {
 	FString JsonString;
-	FGridlyExporter::ConvertToJson(PolyglotTextDatas, bIncludeTargetTranslations, JsonString);
+	FGridlyExporter::ConvertToJson(PolyglotTextDatas, bIncludeTargetTranslations, LocTextHelperPtr, JsonString);
 	UE_LOG(LogGridlyEditor, Log, TEXT("Creating export request with %d entries"), PolyglotTextDatas.Num());
 
 	const UGridlyGameSettings* GameSettings = GetMutableDefault<UGridlyGameSettings>();
@@ -379,18 +379,19 @@ void FGridlyLocalizationServiceProvider::ExportNativeCultureForTargetToGridly(
 		if (InLocalizationTarget)
 		{
 			TArray<FPolyglotTextData> PolyglotTextDatas;
-			if (FGridlyLocalizedText::GetAllTextAsPolyglotTextDatas(InLocalizationTarget, PolyglotTextDatas))
+			TSharedPtr<FLocTextHelper> LocTextHelperPtr;
+			if (FGridlyLocalizedText::GetAllTextAsPolyglotTextDatas(InLocalizationTarget, PolyglotTextDatas, LocTextHelperPtr))
 			{
 				size_t TotalRequests = 0;
-				
+
 				while (PolyglotTextDatas.Num() > 0)
 				{
 					const size_t ChunkSize = FMath::Min(GetMutableDefault<UGridlyGameSettings>()->ExportMaxRecordsPerRequest, PolyglotTextDatas.Num());
 					const TArray<FPolyglotTextData> ChunkPolyglotTextDatas(PolyglotTextDatas.GetData(), ChunkSize);
 					PolyglotTextDatas.RemoveAt(0, ChunkSize);
-					const auto HttpRequest = CreateExportRequest(ChunkPolyglotTextDatas, false);
+					const auto HttpRequest = CreateExportRequest(ChunkPolyglotTextDatas, LocTextHelperPtr, false);
 					HttpRequest->OnProcessRequestComplete().
-					             BindRaw(this, &FGridlyLocalizationServiceProvider::OnExportNativeCultureForTargetToGridly);
+				             BindRaw(this, &FGridlyLocalizationServiceProvider::OnExportNativeCultureForTargetToGridly);
 					ExportNativeCultureFromTargetRequestQueue.Enqueue(HttpRequest);
 					TotalRequests++;
 				}
@@ -473,7 +474,8 @@ void FGridlyLocalizationServiceProvider::ExportTranslationsForTargetToGridly(TWe
 		if (InLocalizationTarget)
 		{
 			TArray<FPolyglotTextData> PolyglotTextDatas;
-			if (FGridlyLocalizedText::GetAllTextAsPolyglotTextDatas(InLocalizationTarget, PolyglotTextDatas))
+			TSharedPtr<FLocTextHelper> LocTextHelperPtr;
+			if (FGridlyLocalizedText::GetAllTextAsPolyglotTextDatas(InLocalizationTarget, PolyglotTextDatas, LocTextHelperPtr))
 			{
 				size_t TotalRequests = 0;
 
@@ -482,9 +484,9 @@ void FGridlyLocalizationServiceProvider::ExportTranslationsForTargetToGridly(TWe
 					const size_t ChunkSize = FMath::Min(GetMutableDefault<UGridlyGameSettings>()->ExportMaxRecordsPerRequest, PolyglotTextDatas.Num());
 					const TArray<FPolyglotTextData> ChunkPolyglotTextDatas(PolyglotTextDatas.GetData(), ChunkSize);
 					PolyglotTextDatas.RemoveAt(0, ChunkSize);
-					const auto HttpRequest = CreateExportRequest(ChunkPolyglotTextDatas, false);
+					const auto HttpRequest = CreateExportRequest(ChunkPolyglotTextDatas, LocTextHelperPtr, false);
 					HttpRequest->OnProcessRequestComplete().
-					             BindRaw(this, &FGridlyLocalizationServiceProvider::OnExportTranslationsForTargetToGridly);
+				             BindRaw(this, &FGridlyLocalizationServiceProvider::OnExportTranslationsForTargetToGridly);
 					ExportTranslationsForTargetRequestQueue.Enqueue(HttpRequest);
 					TotalRequests++;
 				}

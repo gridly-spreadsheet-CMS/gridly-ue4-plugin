@@ -1,4 +1,4 @@
-﻿// Copyright © 2020 LocalizeDirect AB
+// Copyright (c) 2021 LocalizeDirect AB
 
 #include "GridlyLocalizedText.h"
 
@@ -10,7 +10,7 @@
 #include "Internationalization/PolyglotTextData.h"
 
 bool FGridlyLocalizedText::GetAllTextAsPolyglotTextDatas(ULocalizationTarget* LocalizationTarget,
-	TArray<FPolyglotTextData>& OutPolyglotTextDatas)
+	TArray<FPolyglotTextData>& OutPolyglotTextDatas, TSharedPtr<FLocTextHelper>& LocTextHelper)
 {
 	const FString ConfigFilePath = LocalizationConfigurationScript::GetGatherTextConfigPath(LocalizationTarget);
 	const FString SectionName = TEXT("CommonSettings");
@@ -70,23 +70,24 @@ bool FGridlyLocalizedText::GetAllTextAsPolyglotTextDatas(ULocalizationTarget* Lo
 	const TArray<FString> CulturesToGenerate = FGridlyCultureConverter::GetTargetCultures();
 
 	// Load the manifest and all archives
-	FLocTextHelper LocTextHelper(SourcePath, ManifestName, ArchiveName, NativeCulture, CulturesToGenerate, nullptr);
+	LocTextHelper = MakeShareable(new FLocTextHelper(SourcePath, ManifestName, ArchiveName, NativeCulture, CulturesToGenerate, nullptr));
+	//FLocTextHelper LocTextHelper(SourcePath, ManifestName, ArchiveName, NativeCulture, CulturesToGenerate, nullptr);
 	{
 		FText LoadError;
-		if (!LocTextHelper.LoadAll(ELocTextHelperLoadFlags::LoadOrCreate, &LoadError))
+		if (!LocTextHelper->LoadAll(ELocTextHelperLoadFlags::LoadOrCreate, &LoadError))
 		{
 			UE_LOG(LogGridlyEditor, Error, TEXT("%s"), *LoadError.ToString());
 			return false;
 		}
 	}
 
-	LocTextHelper.EnumerateSourceTexts(
+	LocTextHelper->EnumerateSourceTexts(
 		[&LocTextHelper, &OutPolyglotTextDatas, &NativeCulture](TSharedRef<FManifestEntry> InManifestEntry)
 		{
 			for (const FManifestContext& Context : InManifestEntry->Contexts)
 			{
 				FLocItem TranslationText;
-				LocTextHelper.GetRuntimeText(NativeCulture, InManifestEntry->Namespace, Context.Key,
+				LocTextHelper->GetRuntimeText(NativeCulture, InManifestEntry->Namespace, Context.Key,
 					Context.KeyMetadataObj, ELocTextExportSourceMethod::NativeText, InManifestEntry->Source, TranslationText, true);
 
 				const FString SourceKey = Context.Key.GetString();
@@ -105,7 +106,7 @@ bool FGridlyLocalizedText::GetAllTextAsPolyglotTextDatas(ULocalizationTarget* Lo
 		const FString CultureName = CulturesToGenerate[i];
 		if (CultureName != NativeCulture)
 		{
-			LocTextHelper.EnumerateTranslations(CultureName,
+			LocTextHelper->EnumerateTranslations(CultureName,
 				[&CultureName, &OutPolyglotTextDatas](TSharedRef<FArchiveEntry> InManifestEntry)
 				{
 					FPolyglotTextData* PolyglotTextData = OutPolyglotTextDatas.FindByPredicate(
