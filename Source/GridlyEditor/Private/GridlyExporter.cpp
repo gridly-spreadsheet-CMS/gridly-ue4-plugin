@@ -87,6 +87,28 @@ bool FGridlyExporter::ConvertToJson(const TArray<FPolyglotTextData>& PolyglotTex
 				CellJsonObject->SetStringField("value",
 					ItemContext->SourceLocation.Replace(TEXT(" - line "), TEXT(":"), ESearchCase::CaseSensitive));
 				CellsJsonArray.Add(MakeShareable(new FJsonValueObject(CellJsonObject)));
+				// SBZ romaric.sourbe - setup path using custom rules
+				// Set path using either String Table namespace or 'FromSrcCode' when Text is defined in source code
+				if (!bUsePathAsNamespace && GameSettings->bExportTextTypeAsPath)
+				{
+					FString Path;
+
+					// Use SourceLocation to understand if text comes from source code or from a string table
+
+					const int32 LineStrIdx = ItemContext->SourceLocation.Find(TEXT("- line"));
+					if (LineStrIdx > INDEX_NONE)
+					{
+						Path.Append(TEXT("Code"));
+					}
+					else
+					{
+						Path.Append(TEXT("StringTables/"));
+						Path.Append(FPaths::GetBaseFilename(ItemContext->SourceLocation));
+					}
+
+					RowJsonObject->SetStringField("path", Path);
+				}
+				// SBZ
 			}
 
 			// Add metadata

@@ -378,36 +378,13 @@ void FGridlyLocalizationServiceProvider::ExportNativeCultureForTargetToGridly(
 		ULocalizationTarget* InLocalizationTarget = LocalizationTarget.Get();
 		if (InLocalizationTarget)
 		{
-			TArray<FPolyglotTextData> PolyglotTextDatas;
-			TSharedPtr<FLocTextHelper> LocTextHelperPtr;
-			if (FGridlyLocalizedText::GetAllTextAsPolyglotTextDatas(InLocalizationTarget, PolyglotTextDatas, LocTextHelperPtr))
-			{
-				size_t TotalRequests = 0;
+			FHttpRequestCompleteDelegate ReqDelegate = FHttpRequestCompleteDelegate::CreateRaw(this,
+				&FGridlyLocalizationServiceProvider::OnExportNativeCultureForTargetToGridly);
 
-				while (PolyglotTextDatas.Num() > 0)
-				{
-					const size_t ChunkSize = FMath::Min(GetMutableDefault<UGridlyGameSettings>()->ExportMaxRecordsPerRequest, PolyglotTextDatas.Num());
-					const TArray<FPolyglotTextData> ChunkPolyglotTextDatas(PolyglotTextDatas.GetData(), ChunkSize);
-					PolyglotTextDatas.RemoveAt(0, ChunkSize);
-					const auto HttpRequest = CreateExportRequest(ChunkPolyglotTextDatas, LocTextHelperPtr, false);
-					HttpRequest->OnProcessRequestComplete().
-				             BindRaw(this, &FGridlyLocalizationServiceProvider::OnExportNativeCultureForTargetToGridly);
-					ExportNativeCultureFromTargetRequestQueue.Enqueue(HttpRequest);
-					TotalRequests++;
-				}
+			const FText SlowTaskText = LOCTEXT("ExportNativeCultureForTargetToGridlyText",
+				"Exporting native culture for target to Gridly");
 
-				ExportNativeCultureFromTargetEntriesUpdated = 0;
-
-				TSharedPtr<IHttpRequest, ESPMode::ThreadSafe> HttpRequest;
-				if (ExportNativeCultureFromTargetRequestQueue.Dequeue(HttpRequest))
-				{
-					ExportNativeCultureFromTargetToGridlySlowTask = MakeShareable(new FScopedSlowTask(
-						static_cast<float>(TotalRequests),
-						LOCTEXT("ExportNativeCultureForTargetToGridlyText", "Exporting native culture for target to Gridly")));
-					ExportNativeCultureFromTargetToGridlySlowTask->MakeDialog();
-					HttpRequest->ProcessRequest();
-				}
-			}
+			ExportForTargetToGridly(InLocalizationTarget, ReqDelegate, SlowTaskText);
 		}
 	}
 }
@@ -424,22 +401,31 @@ void FGridlyLocalizationServiceProvider::OnExportNativeCultureForTargetToGridly(
 			const auto JsonStringReader = TJsonReaderFactory<TCHAR>::Create(Content);
 			TArray<TSharedPtr<FJsonValue>> JsonValueArray;
 			FJsonSerializer::Deserialize(JsonStringReader, JsonValueArray);
-			ExportNativeCultureFromTargetEntriesUpdated += JsonValueArray.Num();
+			ExportForTargetEntriesUpdated += JsonValueArray.Num();
 
-			ExportNativeCultureFromTargetToGridlySlowTask->EnterProgressFrame(1.f);
+			if (!IsRunningCommandlet())
+			{
+				ExportForTargetToGridlySlowTask->EnterProgressFrame(1.f);
+			}
 
 			TSharedPtr<IHttpRequest, ESPMode::ThreadSafe> HttpRequest;
-			if (ExportNativeCultureFromTargetRequestQueue.Dequeue(HttpRequest))
+			if (ExportFromTargetRequestQueue.Dequeue(HttpRequest))
 			{
 				HttpRequest->ProcessRequest();
 			}
 			else
 			{
 				const FString Message = FString::Printf(TEXT("Number of entries updated: %llu"),
-					ExportNativeCultureFromTargetEntriesUpdated);
+					ExportForTargetEntriesUpdated);
 				UE_LOG(LogGridlyEditor, Log, TEXT("%s"), *Message);
-				FMessageDialog::Open(EAppMsgType::Ok, FText::FromString(Message));
-				ExportNativeCultureFromTargetToGridlySlowTask.Reset();
+
+				if (!IsRunningCommandlet())
+				{
+					FMessageDialog::Open(EAppMsgType::Ok, FText::FromString(Message));
+					ExportForTargetToGridlySlowTask.Reset();
+				}
+
+				bExportRequestInProgress = false;
 			}
 		}
 		else
@@ -448,14 +434,25 @@ void FGridlyLocalizationServiceProvider::OnExportNativeCultureForTargetToGridly(
 			const FString ErrorReason =
 				FString::Printf(TEXT("Error: %d, reason: %s"), HttpResponsePtr->GetResponseCode(), *Content);
 			UE_LOG(LogGridlyEditor, Error, TEXT("%s"), *ErrorReason);
-			FMessageDialog::Open(EAppMsgType::Ok, FText::FromString(ErrorReason));
-			ExportNativeCultureFromTargetToGridlySlowTask.Reset();
+
+			if (!IsRunningCommandlet())
+			{
+				FMessageDialog::Open(EAppMsgType::Ok, FText::FromString(ErrorReason));
+				ExportForTargetToGridlySlowTask.Reset();
+			}
+
+			bExportRequestInProgress = false;
 		}
 	}
 	else
 	{
-		FMessageDialog::Open(EAppMsgType::Ok, LOCTEXT("GridlyConnectionError", "ERROR: Unable to connect to Gridly"));
-		ExportNativeCultureFromTargetToGridlySlowTask.Reset();
+		if (!IsRunningCommandlet())
+		{
+			FMessageDialog::Open(EAppMsgType::Ok, LOCTEXT("GridlyConnectionError", "ERROR: Unable to connect to Gridly"));
+			ExportForTargetToGridlySlowTask.Reset();
+		}
+
+		bExportRequestInProgress = false;
 	}
 }
 
@@ -473,37 +470,13 @@ void FGridlyLocalizationServiceProvider::ExportTranslationsForTargetToGridly(TWe
 		ULocalizationTarget* InLocalizationTarget = LocalizationTarget.Get();
 		if (InLocalizationTarget)
 		{
-			TArray<FPolyglotTextData> PolyglotTextDatas;
-			TSharedPtr<FLocTextHelper> LocTextHelperPtr;
-			if (FGridlyLocalizedText::GetAllTextAsPolyglotTextDatas(InLocalizationTarget, PolyglotTextDatas, LocTextHelperPtr))
-			{
-				size_t TotalRequests = 0;
+			FHttpRequestCompleteDelegate ReqDelegate = FHttpRequestCompleteDelegate::CreateRaw(this,
+				&FGridlyLocalizationServiceProvider::OnExportTranslationsForTargetToGridly);
 
-				while (PolyglotTextDatas.Num() > 0)
-				{
-					const size_t ChunkSize = FMath::Min(GetMutableDefault<UGridlyGameSettings>()->ExportMaxRecordsPerRequest, PolyglotTextDatas.Num());
-					const TArray<FPolyglotTextData> ChunkPolyglotTextDatas(PolyglotTextDatas.GetData(), ChunkSize);
-					PolyglotTextDatas.RemoveAt(0, ChunkSize);
-					const auto HttpRequest = CreateExportRequest(ChunkPolyglotTextDatas, LocTextHelperPtr, false);
-					HttpRequest->OnProcessRequestComplete().
-				             BindRaw(this, &FGridlyLocalizationServiceProvider::OnExportTranslationsForTargetToGridly);
-					ExportTranslationsForTargetRequestQueue.Enqueue(HttpRequest);
-					TotalRequests++;
-				}
+			const FText SlowTaskText = LOCTEXT("ExportTranslationsForTargetToGridlyText",
+					"Exporting source text and translations for target to Gridly");
 
-				ExportTranslationsForTargetEntriesUpdated = 0;
-
-				TSharedPtr<IHttpRequest, ESPMode::ThreadSafe> HttpRequest;
-				if (ExportTranslationsForTargetRequestQueue.Dequeue(HttpRequest))
-				{
-					ExportTranslationsForTargetToGridlySlowTask = MakeShareable(new FScopedSlowTask(
-						static_cast<float>(TotalRequests),
-						LOCTEXT("ExportTranslationsForTargetToGridlyText",
-							"Exporting source text and translations for target to Gridly")));
-					ExportTranslationsForTargetToGridlySlowTask->MakeDialog();
-					HttpRequest->ProcessRequest();
-				}
-			}
+			ExportForTargetToGridly(InLocalizationTarget, ReqDelegate, SlowTaskText);
 		}
 	}
 }
@@ -520,22 +493,31 @@ void FGridlyLocalizationServiceProvider::OnExportTranslationsForTargetToGridly(F
 			const auto JsonStringReader = TJsonReaderFactory<TCHAR>::Create(Content);
 			TArray<TSharedPtr<FJsonValue>> JsonValueArray;
 			FJsonSerializer::Deserialize(JsonStringReader, JsonValueArray);
-			ExportTranslationsForTargetEntriesUpdated += JsonValueArray.Num();
+			ExportForTargetEntriesUpdated += JsonValueArray.Num();
 
-			ExportTranslationsForTargetToGridlySlowTask->EnterProgressFrame(1.f);
+			if (!IsRunningCommandlet())
+			{
+				ExportForTargetToGridlySlowTask->EnterProgressFrame(1.f);
+			}
 
 			TSharedPtr<IHttpRequest, ESPMode::ThreadSafe> HttpRequest;
-			if (ExportTranslationsForTargetRequestQueue.Dequeue(HttpRequest))
+			if (ExportFromTargetRequestQueue.Dequeue(HttpRequest))
 			{
 				HttpRequest->ProcessRequest();
 			}
 			else
 			{
 				const FString Message = FString::Printf(TEXT("Number of entries updated: %llu"),
-					ExportTranslationsForTargetEntriesUpdated);
+					ExportForTargetEntriesUpdated);
 				UE_LOG(LogGridlyEditor, Log, TEXT("%s"), *Message);
-				FMessageDialog::Open(EAppMsgType::Ok, FText::FromString(Message));
-				ExportTranslationsForTargetToGridlySlowTask.Reset();
+
+				if (!IsRunningCommandlet())
+				{
+					FMessageDialog::Open(EAppMsgType::Ok, FText::FromString(Message));
+					ExportForTargetToGridlySlowTask.Reset();
+				}
+
+				bExportRequestInProgress = false;
 			}
 		}
 		else
@@ -544,15 +526,72 @@ void FGridlyLocalizationServiceProvider::OnExportTranslationsForTargetToGridly(F
 			const FString ErrorReason =
 				FString::Printf(TEXT("Error: %d, reason: %s"), HttpResponsePtr->GetResponseCode(), *Content);
 			UE_LOG(LogGridlyEditor, Error, TEXT("%s"), *ErrorReason);
-			FMessageDialog::Open(EAppMsgType::Ok, FText::FromString(ErrorReason));
-			ExportTranslationsForTargetToGridlySlowTask.Reset();
+
+			if (!IsRunningCommandlet())
+			{
+				FMessageDialog::Open(EAppMsgType::Ok, FText::FromString(ErrorReason));
+				ExportForTargetToGridlySlowTask.Reset();
+			}
+
+			bExportRequestInProgress = false;
 		}
 	}
 	else
 	{
-		FMessageDialog::Open(EAppMsgType::Ok, LOCTEXT("GridlyConnectionError", "ERROR: Unable to connect to Gridly"));
-		ExportTranslationsForTargetToGridlySlowTask.Reset();
+		if (!IsRunningCommandlet())
+		{
+			FMessageDialog::Open(EAppMsgType::Ok, LOCTEXT("GridlyConnectionError", "ERROR: Unable to connect to Gridly"));
+			ExportForTargetToGridlySlowTask.Reset();
+		}
+
+		bExportRequestInProgress = false;
 	}
+}
+
+void FGridlyLocalizationServiceProvider::ExportForTargetToGridly(ULocalizationTarget* InLocalizationTarget, FHttpRequestCompleteDelegate& ReqDelegate, const FText& SlowTaskText, bool bIncTargetTranslation)
+{
+	TArray<FPolyglotTextData> PolyglotTextDatas;
+	TSharedPtr<FLocTextHelper> LocTextHelperPtr;
+	if (FGridlyLocalizedText::GetAllTextAsPolyglotTextDatas(InLocalizationTarget, PolyglotTextDatas, LocTextHelperPtr))
+	{
+		size_t TotalRequests = 0;
+
+		while (PolyglotTextDatas.Num() > 0)
+		{
+			const size_t ChunkSize = FMath::Min(GetMutableDefault<UGridlyGameSettings>()->ExportMaxRecordsPerRequest, PolyglotTextDatas.Num());
+			const TArray<FPolyglotTextData> ChunkPolyglotTextDatas(PolyglotTextDatas.GetData(), ChunkSize);
+			PolyglotTextDatas.RemoveAt(0, ChunkSize);
+			const auto HttpRequest = CreateExportRequest(ChunkPolyglotTextDatas, LocTextHelperPtr, bIncTargetTranslation);
+			HttpRequest->OnProcessRequestComplete() = ReqDelegate;
+			ExportFromTargetRequestQueue.Enqueue(HttpRequest);
+			TotalRequests++;
+		}
+
+		ExportForTargetEntriesUpdated = 0;
+
+		TSharedPtr<IHttpRequest, ESPMode::ThreadSafe> HttpRequest;
+		if (ExportFromTargetRequestQueue.Dequeue(HttpRequest))
+		{
+			if (!IsRunningCommandlet())
+			{
+				ExportForTargetToGridlySlowTask = MakeShareable(new FScopedSlowTask(static_cast<float>(TotalRequests), SlowTaskText));
+				ExportForTargetToGridlySlowTask->MakeDialog();
+			}
+
+			bExportRequestInProgress = true;
+			HttpRequest->ProcessRequest();
+		}
+	}
+}
+
+bool FGridlyLocalizationServiceProvider::HasRequestsPending() const
+{
+	return !ExportFromTargetRequestQueue.IsEmpty() || bExportRequestInProgress;
+}
+
+FHttpRequestCompleteDelegate FGridlyLocalizationServiceProvider::CreateExportNativeCultureDelegate()
+{
+	return FHttpRequestCompleteDelegate::CreateRaw(this, &FGridlyLocalizationServiceProvider::OnExportNativeCultureForTargetToGridly);
 }
 
 #undef LOCTEXT_NAMESPACE
