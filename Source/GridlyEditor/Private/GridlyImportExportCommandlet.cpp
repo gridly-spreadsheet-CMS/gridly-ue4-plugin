@@ -17,7 +17,7 @@
 
 DEFINE_LOG_CATEGORY_STATIC(LogGridlyImportExportCommandlet, Log, All);
 
-#define LOCTEXT_NAMESPACE "Gridly"
+#define LOCTEXT_NAMESPACE "GridlyImportExportCommandlet"
 
 /**
 *	UGridlyImportExportCommandlet
@@ -65,69 +65,6 @@ int32 UGridlyImportExportCommandlet::Main(const FString& Params)
 		UE_LOG(LogGridlyImportExportCommandlet, Error, TEXT("No config section specified."));
 		return -1;
 	}
-
-	//// Get native culture.
-	//FString NativeCultureName;
-	//if (!GetStringFromConfig(*SectionName, TEXT("NativeCulture"), NativeCultureName, ConfigPath))
-	//{
-	//	UE_LOG(LogGridlyImportExportCommandlet, Error, TEXT("No native culture specified."));
-	//	return false;
-	//}
-
-	//// Get manifest name.
-	//FString ManifestName;
-	//if (!GetStringFromConfig(*SectionName, TEXT("ManifestName"), ManifestName, ConfigPath))
-	//{
-	//	UE_LOG(LogGridlyImportExportCommandlet, Error, TEXT("No manifest name specified."));
-	//	return false;
-	//}
-
-	//// Get archive name.
-	//FString ArchiveName;
-	//if (!GetStringFromConfig(*SectionName, TEXT("ArchiveName"), ArchiveName, ConfigPath))
-	//{
-	//	UE_LOG(LogGridlyImportExportCommandlet, Error, TEXT("No archive name specified."));
-	//	return false;
-	//}
-
-	//// Source path to the root folder that manifest/archive files live in.
-	//FString SourcePath;
-	//if (!GetPathFromConfig(*SectionName, TEXT("SourcePath"), SourcePath, ConfigPath))
-	//{
-	//	UE_LOG(LogGridlyImportExportCommandlet, Error, TEXT("No source path specified."));
-	//	return -1;
-	//}
-
-	//// Destination path that we will write files to.
-	//FString DestinationPath;
-	//if (!GetPathFromConfig(*SectionName, TEXT("DestinationPath"), DestinationPath, ConfigPath))
-	//{
-	//	UE_LOG(LogGridlyImportExportCommandlet, Error, TEXT("No destination path specified."));
-	//	return -1;
-	//}
-
-	//// Name of the file to read or write from.
-	//FString Filename;
-	//if (!GetStringFromConfig(*SectionName, TEXT("PortableObjectName"), Filename, ConfigPath))
-	//{
-	//	UE_LOG(LogGridlyImportExportCommandlet, Error, TEXT("No portable object name specified."));
-	//	return -1;
-	//}
-
-	//// Get cultures to generate.
-	//TArray<FString> CulturesToGenerate;
-	//if (GetStringArrayFromConfig(*SectionName, TEXT("CulturesToGenerate"), CulturesToGenerate, ConfigPath) == 0)
-	//{
-	//	UE_LOG(LogGridlyImportExportCommandlet, Error, TEXT("No cultures specified for generation."));
-	//	return -1;
-	//}
-
-	//// Get culture directory setting, default to true if not specified (used to allow picking of import directory with file open dialog from Translation Editor)
-	//bool bUseCultureDirectory = true;
-	//if (!GetBoolFromConfig(*SectionName, TEXT("bUseCultureDirectory"), bUseCultureDirectory, ConfigPath))
-	//{
-	//	bUseCultureDirectory = true;
-	//}
 
 	bool bDoImport = false;
 	GetBoolFromConfig(*SectionName, TEXT("bImportLoc"), bDoImport, ConfigPath);
