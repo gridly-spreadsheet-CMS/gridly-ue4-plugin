@@ -51,12 +51,12 @@ public:
 		TSharedRef<FUICommandList> CommandList);
 #endif	  // LOCALIZATION_SERVICES_WITH_SLATE
 
-	// SBZ romaric.sourbe - add function to run export/import from commandlet
+	// functions to run export/import from commandlet
 	FHttpRequestCompleteDelegate CreateExportNativeCultureDelegate();
 	bool HasRequestsPending() const;
 
 	void ExportForTargetToGridly(ULocalizationTarget* LocalizationTarget, FHttpRequestCompleteDelegate& ReqDelegate, const FText& SlowTaskText, bool bIncTargetTranslation = false);
-	// SBZ
+	
 private:
 	// Import
 
