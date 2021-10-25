@@ -476,7 +476,7 @@ void FGridlyLocalizationServiceProvider::ExportTranslationsForTargetToGridly(TWe
 			const FText SlowTaskText = LOCTEXT("ExportTranslationsForTargetToGridlyText",
 					"Exporting source text and translations for target to Gridly");
 
-			ExportForTargetToGridly(InLocalizationTarget, ReqDelegate, SlowTaskText);
+			ExportForTargetToGridly(InLocalizationTarget, ReqDelegate, SlowTaskText, true);
 		}
 	}
 }
