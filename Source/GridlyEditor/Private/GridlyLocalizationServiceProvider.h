@@ -51,6 +51,12 @@ public:
 		TSharedRef<FUICommandList> CommandList);
 #endif	  // LOCALIZATION_SERVICES_WITH_SLATE
 
+	// functions to run export/import from commandlet
+	FHttpRequestCompleteDelegate CreateExportNativeCultureDelegate();
+	bool HasRequestsPending() const;
+
+	void ExportForTargetToGridly(ULocalizationTarget* LocalizationTarget, FHttpRequestCompleteDelegate& ReqDelegate, const FText& SlowTaskText, bool bIncTargetTranslation = false);
+	
 private:
 	// Import
 
@@ -63,17 +69,16 @@ private:
 
 	// Export
 
+	size_t ExportForTargetEntriesUpdated;
+	TSharedPtr<FScopedSlowTask> ExportForTargetToGridlySlowTask;
+	TQueue<TSharedPtr<IHttpRequest, ESPMode::ThreadSafe>> ExportFromTargetRequestQueue;
+	bool bExportRequestInProgress = false;
+
 	void ExportNativeCultureForTargetToGridly(TWeakObjectPtr<ULocalizationTarget> LocalizationTarget, bool bIsTargetSet);
 	void OnExportNativeCultureForTargetToGridly(FHttpRequestPtr HttpRequestPtr, FHttpResponsePtr HttpResponsePtr, bool bSuccess);
-	TSharedPtr<FScopedSlowTask> ExportNativeCultureFromTargetToGridlySlowTask;
-	TQueue<TSharedPtr<IHttpRequest, ESPMode::ThreadSafe>> ExportNativeCultureFromTargetRequestQueue;
-	size_t ExportNativeCultureFromTargetEntriesUpdated;
-	
+
 	// Export all
 
 	void ExportTranslationsForTargetToGridly(TWeakObjectPtr<ULocalizationTarget> LocalizationTarget, bool bIsTargetSet);
 	void OnExportTranslationsForTargetToGridly(FHttpRequestPtr HttpRequestPtr, FHttpResponsePtr HttpResponsePtr, bool bSuccess);
-	TSharedPtr<FScopedSlowTask> ExportTranslationsForTargetToGridlySlowTask;
-	TQueue<TSharedPtr<IHttpRequest, ESPMode::ThreadSafe>> ExportTranslationsForTargetRequestQueue;
-	size_t ExportTranslationsForTargetEntriesUpdated;
 };
