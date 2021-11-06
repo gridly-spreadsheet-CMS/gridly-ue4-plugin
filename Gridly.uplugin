@@ -1,19 +1,19 @@
 {
 	"FileVersion": 3,
 	"Version": 1,
-	"VersionName": "0.1.0",
+	"VersionName": "1.0.0",
 	"FriendlyName": "Gridly",
 	"Description": "The #1 spreadsheet for multi-language content. Bring your digital assets together and localize at speed",
 	"Category": "Localization",
 	"CreatedBy": "LocalizeDirect",
 	"CreatedByURL": "https://www.gridly.com",
-	"DocsURL": "",
+	"DocsURL": "https://github.com/gridly-spreadsheet-CMS/Gridly-UE4-Plugin",
 	"MarketplaceURL": "",
-	"SupportURL": "",
+	"SupportURL": "https://github.com/gridly-spreadsheet-CMS/Gridly-UE4-Plugin",
 	"CanContainContent": false,
-	"IsBetaVersion": true,
+	"IsBetaVersion": false,
 	"IsExperimentalVersion": false,
-	"Installed": false,
+	"EngineVersion": "4.27.0",
 	"Modules": [
 		{
 			"Name": "Gridly",
@@ -25,5 +25,14 @@
 			"Type": "Editor",
 			"LoadingPhase": "Default"
 		}
+	],
+	"WhitelistPlatforms": [
+		"Win64",
+		"Win32",
+		"Linux",
+		"Android",
+		"Mac",
+		"IOS",
+		"TVOS"
 	]
 }
