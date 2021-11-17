@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 
-#include "Json.h"
 #include "Engine/DataTable.h"
 
 namespace GridlyDataTableJSONUtils

@@ -2,6 +2,9 @@
 
 #include "GridlyTask_DownloadLocalizedTexts.h"
 
+#include "Engine/EngineTypes.h"
+#include "Engine/World.h"
+#include "TimerManager.h"
 #include "Gridly.h"
 #include "GridlyGameSettings.h"
 #include "GridlyLocalizedTextConverter.h"

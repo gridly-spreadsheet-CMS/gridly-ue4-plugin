@@ -2,6 +2,9 @@
 
 #include "GridlyTask_ImportDataTableFromGridly.h"
 
+#include "Engine/EngineTypes.h"
+#include "Engine/World.h"
+#include "TimerManager.h"
 #include "GridlyDataTableImporterJSON.h"
 #include "Gridly.h"
 #include "GridlyGameSettings.h"

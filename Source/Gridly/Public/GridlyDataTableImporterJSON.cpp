@@ -2,6 +2,7 @@
 
 #include "GridlyDataTableImporterJSON.h"
 
+#include "Runtime/Launch/Resources/Version.h"
 #include "GridlyDataTable.h"
 
 namespace GridlyDataTableJSONUtils

@@ -3,6 +3,7 @@
 #include "Gridly.h"
 
 #include "../Public/GridlyGameSettings.h"
+#include "Core/Public/Modules/ModuleManager.h"
 
 #if WITH_EDITOR
 #include "ISettingsContainer.h"
