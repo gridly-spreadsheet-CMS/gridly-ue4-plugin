@@ -15,7 +15,7 @@ DEFINE_LOG_CATEGORY(LogGridly);
 
 #define LOCTEXT_NAMESPACE "Gridly"
 
-void FGridlyEditorModule::StartupModule()
+void FGridlyModule::StartupModule()
 {
 #if WITH_EDITOR
 	// Register project settings
@@ -40,7 +40,7 @@ void FGridlyEditorModule::StartupModule()
 #endif
 }
 
-void FGridlyEditorModule::ShutdownModule()
+void FGridlyModule::ShutdownModule()
 {
 #if WITH_EDITOR
 	if (ISettingsModule* SettingsModule = FModuleManager::GetModulePtr<ISettingsModule>("Settings"))
@@ -52,4 +52,4 @@ void FGridlyEditorModule::ShutdownModule()
 
 #undef LOCTEXT_NAMESPACE
 
-IMPLEMENT_MODULE(FGridlyEditorModule, Gridly)
+IMPLEMENT_MODULE(FGridlyModule, Gridly)

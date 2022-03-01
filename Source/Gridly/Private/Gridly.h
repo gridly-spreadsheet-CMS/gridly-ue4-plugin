@@ -7,7 +7,7 @@
 
 DECLARE_LOG_CATEGORY_EXTERN(LogGridly, Log, Log);
 
-class FGridlyEditorModule : public IModuleInterface
+class FGridlyModule : public IModuleInterface
 {
 public:
 	virtual void StartupModule() override;
