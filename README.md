@@ -69,7 +69,7 @@ You will also need to set up your project to target the same cultures in the Loc
 
 ![Setting up Cultures](Documentation/Cultures.png)
 
-*Important!* Make sure these locale/culture codes match the ones on Gridly (hover over them to show tooltip). For the sample project, make sure you rename the columns on Gridly `src_enUS`, `tg_frFR`, `tg_itIT`, `tg_deDE` and `tg_esES`. To do this in Gridly, choose "Format column" on the column header. If you have previously set this up with codes that do not match those in Gridly, or you wish to map them in a different way, see how you can [customize the mapping](#markdown-header-custom-culture-mapping).
+*Important!* Make sure these locale/culture codes match the ones on Gridly (hover over them to show tooltip). For the sample project, make sure you rename the columns on Gridly `src_enUS`, `tg_frFR`, `tg_itIT`, `tg_deDE` and `tg_esES`. To do this in Gridly, choose "Column Properties" on the column header. If you have previously set this up with codes that do not match those in Gridly, or you wish to map them in a different way, see how you can [customize the mapping](#markdown-header-custom-culture-mapping).
 
 ### Setting up the API keys and view IDs
 
