@@ -99,6 +99,18 @@ bool FGridlyLocalizedTextConverter::TableRowsToPolyglotTextDatas(const TArray<FG
 	return OutPolyglotTextDatas.Num() > 0;
 }
 
+// Taken from "Engine\Source\Developer\Localization\Private\PortableObjectPipeline.cpp"
+FString ConditionArchiveStrForPO(const FString& InStr)
+{
+	FString Result = InStr;
+	Result.ReplaceInline(TEXT("\\"), TEXT("\\\\"), ESearchCase::CaseSensitive);
+	Result.ReplaceInline(TEXT("\""), TEXT("\\\""), ESearchCase::CaseSensitive);
+	Result.ReplaceInline(TEXT("\r"), TEXT("\\r"), ESearchCase::CaseSensitive);
+	Result.ReplaceInline(TEXT("\n"), TEXT("\\n"), ESearchCase::CaseSensitive);
+	Result.ReplaceInline(TEXT("\t"), TEXT("\\t"), ESearchCase::CaseSensitive);
+	return Result;
+}
+
 bool FGridlyLocalizedTextConverter::WritePoFile(const TArray<FPolyglotTextData>& PolyglotTextDatas, const FString& TargetCulture,
 	const FString& Path)
 {
@@ -116,7 +128,7 @@ bool FGridlyLocalizedTextConverter::WritePoFile(const TArray<FPolyglotTextData>&
 			FString NativeString = PolyglotTextDatas[i].GetNativeString().ReplaceCharWithEscapedChar();
 			Lines.Add(FString::Printf(TEXT("msgid \"%s\""), *NativeString));
 
-			TargetString = TargetString.ReplaceCharWithEscapedChar();
+			TargetString = ConditionArchiveStrForPO(TargetString);
 			Lines.Add(FString::Printf(TEXT("msgstr \"%s\""), *TargetString));
 
 			Lines.Add(TEXT(""));
