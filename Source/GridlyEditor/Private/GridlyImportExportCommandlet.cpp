@@ -164,7 +164,7 @@ int32 UGridlyImportExportCommandlet::Main(const FString& Params)
 		 GridlyProvider->ExportForTargetToGridly(FirstLocTarget, ReqDelegate, SlowTaskText);
 
 		 // Wait for Http requests
-		 while (!GridlyProvider->HasRequestsPending())
+		 while (GridlyProvider->HasRequestsPending())
 		 {
 			 FPlatformProcess::Sleep(0.4f);
 			 FHttpModule::Get().GetHttpManager().Tick(-1.f);
