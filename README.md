@@ -73,7 +73,7 @@ You will also need to set up your project to target the same cultures in the Loc
 
 ### Setting up the API keys and view IDs
 
-To communicate with the API, you need to make sure that you have configured the plugin to use the correct API keys. You also need to set which view IDs you wish to use for import/export. See [import/export settings](#markdown-header-importexport-settings) for more information.
+To communicate with the API, you need to make sure that you have configured the plugin to use the correct API keys. You also need to set which view IDs you wish to use for import/export. See [Import/export Settings](#importexport-settings) for more information.
 
 ### Exporting Native Source Strings
 
