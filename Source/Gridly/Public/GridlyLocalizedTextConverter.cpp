@@ -67,7 +67,12 @@ bool FGridlyLocalizedTextConverter::TableRowsToPolyglotTextDatas(
 		// Namespace / key fixes
 		if (bUsedMakeUniqueRecordId)
 		{
-			Key = Key.Mid(7);
+			int32 UnderscoreIndex = Key.Find(TEXT("_"));
+			if (UnderscoreIndex != INDEX_NONE)
+			{
+				// Remove everything until the first underscore (including the underscore)
+				Key = Key.Mid(UnderscoreIndex + 1);
+			}
 		}
 
 		if (bUseCombinedNamespaceKey)

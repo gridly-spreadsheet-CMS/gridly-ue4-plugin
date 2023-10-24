@@ -36,61 +36,39 @@ bool FGridlyExporter::ConvertToJson(const TArray<FPolyglotTextData>& PolyglotTex
 			ItemContext = ManifestEntry ? ManifestEntry->FindContextByKey(Key) : nullptr;
 		}
 
-		// Set record id
-
 		if (bUseCombinedNamespaceKey)
 		{
 			// Combine Namespace and Key
 			FString CombinedKey = FString::Printf(TEXT("%s,%s"), *Namespace, *Key);
 
-			// Generate 3 random letters
-			FString RandomLetters;
-			for (int j = 0; j < 3; j++)
-			{
-				RandomLetters += getRandomLetter();
-			}
-
-			// Generate 3 random numbers
-			FString RandomNumbers;
-			for (int k = 0; k < 3; k++)
-			{
-				RandomNumbers += FString::Printf(TEXT("%d"), getRandomNumber());
-			}
-
 			if (bUsedMakeUniqueRecordId)
 			{
-				CombinedKey = RandomLetters + RandomNumbers + "_" + CombinedKey;
+				// Generate a hash of the CombinedKey
+				uint32 KeyHash = GetTypeHash(CombinedKey);
+				FString HashString = FString::Printf(TEXT("%u"), KeyHash);
+				FString KeyWithHash = HashString + TEXT("_") + CombinedKey;
+				RowJsonObject->SetStringField("id", KeyWithHash);
 			}
-
-			RowJsonObject->SetStringField("id", CombinedKey);
+			else
+			{
+				RowJsonObject->SetStringField("id", CombinedKey);
+			}
 		}
 		else
 		{
-			// Generate 3 random letters
-			FString RandomLetters;
-			for (int j = 0; j < 3; j++)
-			{
-				RandomLetters += getRandomLetter();
-			}
-
-			// Generate 3 random numbers
-			FString RandomNumbers;
-			for (int k = 0; k < 3; k++)
-			{
-				RandomNumbers += FString::Printf(TEXT("%d"), getRandomNumber());
-			}
-
-			FString KeyWithRandom = Key;
-
 			if (bUsedMakeUniqueRecordId)
 			{
-				KeyWithRandom = RandomLetters + RandomNumbers + "_" + Key;
+				// Generate a hash of the Key
+				uint32 KeyHash = GetTypeHash(Key);
+				FString HashString = FString::Printf(TEXT("%u"), KeyHash);
+				FString KeyWithHash = HashString + TEXT("_") + Key;
+				RowJsonObject->SetStringField("id", KeyWithHash);
 			}
-			
-
-			RowJsonObject->SetStringField("id", KeyWithRandom);
+			else
+			{
+				RowJsonObject->SetStringField("id", Key);
+			}
 		}
-
 
 		// Set namespace/path
 
