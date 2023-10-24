@@ -21,7 +21,7 @@ The sample project is optional, but provides a working example project for refer
 
 ### Setting up a Project for Localization
 
-Gridly plugin for UE4 leverages Unreal's built-in tools for localization. If you are not familiar with Unreal's localization pipeline, please consult [their documentation]([https://docs.unrealengine.com/en-US/ProductionPipelines/Localization/Overview/index.html](https://docs.unrealengine.com/4.27/en-US/ProductionPipelines/Localization/Overview/)).
+Gridly plugin for UE4 leverages Unreal's built-in tools for localization. If you are not familiar with Unreal's localization pipeline, please consult [their documentation](https://docs.unrealengine.com/en-US/ProductionPipelines/Localization/Overview/index.html).
 
 This guide assumes that you are already familiar with Unreal's tools, and that you've correctly set up all the text in your project for localization using this workflow. The plugin supports both inline source strings and the use of StringTables.
 
@@ -69,11 +69,11 @@ You will also need to set up your project to target the same cultures in the Loc
 
 ![Setting up Cultures](Documentation/Cultures.png)
 
-*Important!* Make sure these locale/culture codes match the ones on Gridly (hover over them to show tooltip). For the sample project, make sure you rename the columns on Gridly `src_enUS`, `tg_frFR`, `tg_itIT`, `tg_deDE` and `tg_esES`. To do this in Gridly, choose "Column Properties" on the column header. If you have previously set this up with codes that do not match those in Gridly, or you wish to map them in a different way, see how you can [customize the mapping](#custom-culture-mapping).
+*Important!* Make sure these locale/culture codes match the ones on Gridly (hover over them to show tooltip). For the sample project, make sure you rename the columns on Gridly `src_enUS`, `tg_frFR`, `tg_itIT`, `tg_deDE` and `tg_esES`. To do this in Gridly, choose "Column Properties" on the column header. If you have previously set this up with codes that do not match those in Gridly, or you wish to map them in a different way, see how you can [customize the mapping](#markdown-header-custom-culture-mapping).
 
 ### Setting up the API keys and view IDs
 
-To communicate with the API, you need to make sure that you have configured the plugin to use the correct API keys. You also need to set which view IDs you wish to use for import/export. See [Import/export Settings](#importexport-settings) for more information.
+To communicate with the API, you need to make sure that you have configured the plugin to use the correct API keys. You also need to set which view IDs you wish to use for import/export. See [import/export settings](#markdown-header-importexport-settings) for more information.
 
 ### Exporting Native Source Strings
 
@@ -105,7 +105,7 @@ After making changes on Gridly, the translations can then be updated using the f
 
 ![Update Live Preview Blueprint](Documentation/UpdateLivePreviewBlueprint.png)
 
-While possible, it is currently *not* recommended to use this mode in a production build! This functionality is for development only (either in PIE mode or Development build). When final translations are ready, you should import your translations [through the Localization Dashboard](#importing-translations).
+While possible, it is currently *not* recommended to use this mode in a production build! This functionality is for development only (either in PIE mode or Development build). When final translations are ready, you should import your translations [through the Localization Dashboard](#markdown-header-importing-translations).
 
 ## Gridly Data Table
 

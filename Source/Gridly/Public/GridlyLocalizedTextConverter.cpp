@@ -9,13 +9,14 @@
 #include "Internationalization/PolyglotTextData.h"
 #include "Misc/FileHelper.h"
 
-bool FGridlyLocalizedTextConverter::TableRowsToPolyglotTextDatas(const TArray<FGridlyTableRow>& TableRows,
-	TMap<FString, FPolyglotTextData>& OutPolyglotTextDatas)
+bool FGridlyLocalizedTextConverter::TableRowsToPolyglotTextDatas(
+	const TArray<FGridlyTableRow>& TableRows, TMap<FString, FPolyglotTextData>& OutPolyglotTextDatas)
 {
 	UGridlyGameSettings* GameSettings = GetMutableDefault<UGridlyGameSettings>();
 	const TArray<FString> TargetCultures = FGridlyCultureConverter::GetTargetCultures();
 
 	const bool bUseCombinedNamespaceKey = GameSettings->bUseCombinedNamespaceId;
+	const bool bUsedMakeUniqueRecordId = GameSettings->bMakeUniqueRecordId;
 	const bool bUsePathAsNamespace = !bUseCombinedNamespaceKey && GameSettings->NamespaceColumnId == "path";
 
 	for (int i = 0; i < TableRows.Num(); i++)
@@ -64,6 +65,10 @@ bool FGridlyLocalizedTextConverter::TableRowsToPolyglotTextDatas(const TArray<FG
 		}
 
 		// Namespace / key fixes
+		if (bUsedMakeUniqueRecordId)
+		{
+			Key = Key.Mid(7);
+		}
 
 		if (bUseCombinedNamespaceKey)
 		{
@@ -111,8 +116,8 @@ FString ConditionArchiveStrForPO(const FString& InStr)
 	return Result;
 }
 
-bool FGridlyLocalizedTextConverter::WritePoFile(const TArray<FPolyglotTextData>& PolyglotTextDatas, const FString& TargetCulture,
-	const FString& Path)
+bool FGridlyLocalizedTextConverter::WritePoFile(
+	const TArray<FPolyglotTextData>& PolyglotTextDatas, const FString& TargetCulture, const FString& Path)
 {
 	TArray<FString> Lines;
 
@@ -122,8 +127,8 @@ bool FGridlyLocalizedTextConverter::WritePoFile(const TArray<FPolyglotTextData>&
 
 		if (PolyglotTextDatas[i].GetLocalizedString(TargetCulture, TargetString))
 		{
-			Lines.Add(FString::Printf(TEXT("msgctxt \"%s,%s\""), *PolyglotTextDatas[i].GetNamespace(),
-				*PolyglotTextDatas[i].GetKey()));
+			Lines.Add(
+				FString::Printf(TEXT("msgctxt \"%s,%s\""), *PolyglotTextDatas[i].GetNamespace(), *PolyglotTextDatas[i].GetKey()));
 
 			FString NativeString = PolyglotTextDatas[i].GetNativeString().ReplaceCharWithEscapedChar();
 			Lines.Add(FString::Printf(TEXT("msgid \"%s\""), *NativeString));

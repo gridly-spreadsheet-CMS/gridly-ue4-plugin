@@ -1,20 +1,21 @@
 #include "GridlyExporter.h"
 
+#include "Dom/JsonObject.h"
+#include "Dom/JsonValue.h"
 #include "GridlyCultureConverter.h"
 #include "GridlyDataTableImporterJSON.h"
 #include "GridlyGameSettings.h"
-#include "Dom/JsonObject.h"
-#include "Dom/JsonValue.h"
 #include "Internationalization/PolyglotTextData.h"
 #include "LocTextHelper.h"
 
-bool FGridlyExporter::ConvertToJson(const TArray<FPolyglotTextData>& PolyglotTextDatas,
-	bool bIncludeTargetTranslations, const TSharedPtr<FLocTextHelper>& LocTextHelperPtr, FString& OutJsonString)
+bool FGridlyExporter::ConvertToJson(const TArray<FPolyglotTextData>& PolyglotTextDatas, bool bIncludeTargetTranslations,
+	const TSharedPtr<FLocTextHelper>& LocTextHelperPtr, FString& OutJsonString)
 {
 	UGridlyGameSettings* GameSettings = GetMutableDefault<UGridlyGameSettings>();
 	const TArray<FString> TargetCultures = FGridlyCultureConverter::GetTargetCultures();
 
 	const bool bUseCombinedNamespaceKey = GameSettings->bUseCombinedNamespaceId;
+	const bool bUsedMakeUniqueRecordId = GameSettings->bMakeUniqueRecordId;
 	const bool bExportNamespace = !bUseCombinedNamespaceKey || GameSettings->bAlsoExportNamespaceColumn;
 	const bool bUsePathAsNamespace = GameSettings->NamespaceColumnId == "path";
 
@@ -39,12 +40,57 @@ bool FGridlyExporter::ConvertToJson(const TArray<FPolyglotTextData>& PolyglotTex
 
 		if (bUseCombinedNamespaceKey)
 		{
-			RowJsonObject->SetStringField("id", FString::Printf(TEXT("%s,%s"), *Namespace, *Key));
+			// Combine Namespace and Key
+			FString CombinedKey = FString::Printf(TEXT("%s,%s"), *Namespace, *Key);
+
+			// Generate 3 random letters
+			FString RandomLetters;
+			for (int j = 0; j < 3; j++)
+			{
+				RandomLetters += getRandomLetter();
+			}
+
+			// Generate 3 random numbers
+			FString RandomNumbers;
+			for (int k = 0; k < 3; k++)
+			{
+				RandomNumbers += FString::Printf(TEXT("%d"), getRandomNumber());
+			}
+
+			if (bUsedMakeUniqueRecordId)
+			{
+				CombinedKey = RandomLetters + RandomNumbers + "_" + CombinedKey;
+			}
+
+			RowJsonObject->SetStringField("id", CombinedKey);
 		}
 		else
 		{
-			RowJsonObject->SetStringField("id", Key);
+			// Generate 3 random letters
+			FString RandomLetters;
+			for (int j = 0; j < 3; j++)
+			{
+				RandomLetters += getRandomLetter();
+			}
+
+			// Generate 3 random numbers
+			FString RandomNumbers;
+			for (int k = 0; k < 3; k++)
+			{
+				RandomNumbers += FString::Printf(TEXT("%d"), getRandomNumber());
+			}
+
+			FString KeyWithRandom = Key;
+
+			if (bUsedMakeUniqueRecordId)
+			{
+				KeyWithRandom = RandomLetters + RandomNumbers + "_" + Key;
+			}
+			
+
+			RowJsonObject->SetStringField("id", KeyWithRandom);
 		}
+
 
 		// Set namespace/path
 
@@ -84,8 +130,8 @@ bool FGridlyExporter::ConvertToJson(const TArray<FPolyglotTextData>& PolyglotTex
 			{
 				TSharedPtr<FJsonObject> CellJsonObject = MakeShareable(new FJsonObject);
 				CellJsonObject->SetStringField("columnId", *GameSettings->ContextColumnId);
-				CellJsonObject->SetStringField("value",
-					ItemContext->SourceLocation.Replace(TEXT(" - line "), TEXT(":"), ESearchCase::CaseSensitive));
+				CellJsonObject->SetStringField(
+					"value", ItemContext->SourceLocation.Replace(TEXT(" - line "), TEXT(":"), ESearchCase::CaseSensitive));
 				CellsJsonArray.Add(MakeShareable(new FJsonValueObject(CellJsonObject)));
 			}
 
@@ -131,9 +177,8 @@ bool FGridlyExporter::ConvertToJson(const TArray<FPolyglotTextData>& PolyglotTex
 					const FString CultureName = TargetCultures[j];
 					FString LocalizedString;
 
-					if (CultureName != NativeCulture
-					    && PolyglotTextDatas[i].GetLocalizedString(CultureName, LocalizedString)
-					    && FGridlyCultureConverter::ConvertToGridly(CultureName, GridlyCulture))
+					if (CultureName != NativeCulture && PolyglotTextDatas[i].GetLocalizedString(CultureName, LocalizedString) &&
+						FGridlyCultureConverter::ConvertToGridly(CultureName, GridlyCulture))
 					{
 						TSharedPtr<FJsonObject> CellJsonObject = MakeShareable(new FJsonObject);
 						CellJsonObject->SetStringField("columnId", GameSettings->TargetLanguageColumnIdPrefix + GridlyCulture);
@@ -160,8 +205,22 @@ bool FGridlyExporter::ConvertToJson(const TArray<FPolyglotTextData>& PolyglotTex
 	return false;
 }
 
-bool FGridlyExporter::ConvertToJson(const UGridlyDataTable* GridlyDataTable, FString& OutJsonString, size_t StartIndex,
-	size_t MaxSize)
+// Function to generate a random letter
+char FGridlyExporter::getRandomLetter()
+{
+	const char letters[] = "abcdefghijklmnopqrstuvwxyz";
+	int randomIndex = rand() % (sizeof(letters) - 1);
+	return letters[randomIndex];
+}
+
+// Function to generate a random number
+int FGridlyExporter::getRandomNumber()
+{
+	return rand() % 10;
+}
+
+bool FGridlyExporter::ConvertToJson(
+	const UGridlyDataTable* GridlyDataTable, FString& OutJsonString, size_t StartIndex, size_t MaxSize)
 {
 	UGridlyGameSettings* GameSettings = GetMutableDefault<UGridlyGameSettings>();
 	const TArray<FString> TargetCultures = FGridlyCultureConverter::GetTargetCultures();
@@ -216,16 +275,16 @@ bool FGridlyExporter::ConvertToJson(const UGridlyDataTable* GridlyDataTable, FSt
 
 						if (const FEnumProperty* EnumProp = CastField<const FEnumProperty>(BaseProp))
 						{
-							const FString PropertyValue = DataTableUtils::GetPropertyValueAsString(EnumProp,
-								static_cast<uint8*>(RowData), DTExportFlags);
+							const FString PropertyValue =
+								DataTableUtils::GetPropertyValueAsString(EnumProp, static_cast<uint8*>(RowData), DTExportFlags);
 							JsonWriter->WriteValue("value", PropertyValue);
 						}
 						else if (const FNumericProperty* NumProp = CastField<const FNumericProperty>(BaseProp))
 						{
 							if (NumProp->IsEnum())
 							{
-								const FString PropertyValue = DataTableUtils::GetPropertyValueAsString(BaseProp,
-									static_cast<uint8*>(RowData), DTExportFlags);
+								const FString PropertyValue =
+									DataTableUtils::GetPropertyValueAsString(BaseProp, static_cast<uint8*>(RowData), DTExportFlags);
 								JsonWriter->WriteValue("value", PropertyValue);
 							}
 							else if (NumProp->IsInteger())
@@ -262,8 +321,8 @@ bool FGridlyExporter::ConvertToJson(const UGridlyDataTable* GridlyDataTable, FSt
 						}
 						else
 						{
-							const FString PropertyValue = DataTableUtils::GetPropertyValueAsString(BaseProp,
-								static_cast<uint8*>(RowData), DTExportFlags);
+							const FString PropertyValue =
+								DataTableUtils::GetPropertyValueAsString(BaseProp, static_cast<uint8*>(RowData), DTExportFlags);
 							JsonWriter->WriteValue("value", PropertyValue);
 						}
 

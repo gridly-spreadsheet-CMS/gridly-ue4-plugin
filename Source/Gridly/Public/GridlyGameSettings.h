@@ -59,6 +59,10 @@ public:
 	UPROPERTY(Category = "Gridly|Options", BlueprintReadOnly, EditAnywhere, Config)
 	bool bUseCombinedNamespaceId = false;
 
+	/** Add additional 3 character and 3 number as a prefix to the record ID to make it absolutel unique */
+	UPROPERTY(Category = "Gridly|Options", BlueprintReadOnly, EditAnywhere, Config)
+	bool bMakeUniqueRecordId = false;
+
 	/** Exports namespace to a separate column even if using bUseCombinedNamespaceId  */
 	UPROPERTY(Category = "Gridly|Options", BlueprintReadOnly, EditAnywhere, Config,
 		meta = (EditCondition="bUseCombinedNamespaceId"))
